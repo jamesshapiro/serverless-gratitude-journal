@@ -1,0 +1,248 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  reminders
+
+  Sample SAM Template for gratitude journal app
+
+Globals:
+  Function:
+    MemorySize: 128
+    Timeout: 60
+
+Parameters:
+  SubdomainParam:
+    Type: String
+    Description: The subdomain
+  DomainParam:
+    Type: String
+    Description: The domain
+  HostedZoneIDParam:
+    Type: String
+    Description: The hosted zone ID
+
+Resources:
+  CreateJournalEntryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/gratitude-journal-app-code/
+      Handler: create_journal_entry.lambda_handler
+      Runtime: python3.9
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref JournalEntriesDDBTable
+      Layers:
+        - !Ref ULIDLayer
+      Environment:
+        Variables:
+          GRATITUDE_JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
+      Events:
+        CreateJournalEntryAPIWithKeyRequired:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JournalEntryApi
+            Path: /entries/
+            Method: post
+            Auth:
+              ApiKeyRequired: true
+
+  JournalEntryApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        ApiKeyRequired: true
+
+  JournalEntryApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Enabled: true
+
+  JournalEntryUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn: 'JournalEntryApiProdStage'
+    Properties:
+      ApiStages:
+        - ApiId: !Ref JournalEntryApi
+          Stage: 'Prod'
+
+  JournalEntryUsagePlanKeyAssocation:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref JournalEntryApiKey
+      KeyType: 'API_KEY'
+      UsagePlanId: !Ref JournalEntryUsagePlan
+
+  GetJournalEntriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/gratitude-journal-app-code/
+      Handler: get_journal_entries.lambda_handler
+      Runtime: python3.9
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref JournalEntriesDDBTable
+      Layers:
+        - !Ref ULIDLayer
+      Environment:
+        Variables:
+          REMINDERS_DDB_TABLE: !Ref JournalEntriesDDBTable
+      Events:
+        GetJournalEntriesAPIWithKeyRequired:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JournalEntryApi
+            Path: /entries/
+            Method: get
+            Auth:
+              ApiKeyRequired: true
+
+  CreateJournalEntryFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+          - ''
+          - - /aws/lambda/
+            - Ref: CreateJournalEntryFunction
+
+  GetJournalEntriesFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+          - ''
+          - - /aws/lambda/
+            - Ref: GetJournalEntriesFunction
+
+  JournalEntriesDDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: 'PK1'
+          AttributeType: 'S'
+        - AttributeName: 'SK1'
+          AttributeType: 'S'
+      BillingMode: 'PAY_PER_REQUEST'
+      ContributorInsightsSpecification:
+        Enabled: true
+      KeySchema:
+        - AttributeName: 'PK1'
+          KeyType: 'HASH'
+        - AttributeName: 'SK1'
+          KeyType: 'RANGE'
+
+  ULIDLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: ULIDLayer
+      Description: Reminder Dependencies
+      ContentUri: src/
+      CompatibleRuntimes:
+        - python3.7
+        - python3.8
+        - python3.9
+      LicenseInfo: MIT
+      RetentionPolicy: Retain
+
+  GratitudeJournalWebsiteS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'AES256'
+
+  GratitudeJournalWebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref GratitudeJournalWebsiteS3Bucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Principal:
+              CanonicalUser: !GetAtt GratitudeJournalCloudFrontOAI.S3CanonicalUserId
+            Resource:
+              !Join [
+                '',
+                ['arn:aws:s3:::', !Ref 'GratitudeJournalWebsiteS3Bucket', /*],
+              ]
+
+  GratitudeJournalCloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt GratitudeJournalWebsiteS3Bucket.DomainName
+            Id: myS3Origin
+            S3OriginConfig:
+              OriginAccessIdentity:
+                !Join [
+                  '',
+                  [
+                    'origin-access-identity/cloudfront/',
+                    !Ref GratitudeJournalCloudFrontOAI,
+                  ],
+                ]
+        Enabled: 'true'
+        Comment: !Ref SubdomainParam
+        DefaultRootObject: index.html
+        Aliases:
+          - !Ref SubdomainParam
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          TargetOriginId: myS3Origin
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        ViewerCertificate:
+          AcmCertificateArn: !Ref GratitudeJournalACMCertificate
+          #CloudFrontDefaultCertificate: Boolean
+          #IamCertificateId: String
+          MinimumProtocolVersion: 'TLSv1'
+          SslSupportMethod: 'sni-only'
+
+  GratitudeJournalCloudFrontOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref SubdomainParam
+
+  GratitudeJournalACMCertificate:
+    Type: 'AWS::CertificateManager::Certificate'
+    Properties:
+      DomainName: !Ref SubdomainParam
+      DomainValidationOptions:
+        - DomainName: !Ref SubdomainParam
+          HostedZoneId: !Ref HostedZoneIDParam
+      ValidationMethod: DNS
+
+  GratitudeRoute53RecordSet:
+    Type: 'AWS::Route53::RecordSetGroup'
+    Properties:
+      HostedZoneId: !Ref HostedZoneIDParam
+      RecordSets:
+        - Name: !Ref SubdomainParam
+          Type: A
+          AliasTarget:
+            # Note: This HostedZoneID is always used for every CF distribution so it can be hard-coded in
+            HostedZoneId: 'Z2FDTNDATAQYW2'
+            DNSName: !GetAtt GratitudeJournalCloudFrontDistribution.DomainName
+
+Outputs:
+  ULIDLayer:
+    Value: !Ref ULIDLayer
+    Description: ARN For AWS ULIDLayer
+  JournalEntryApi:
+    Description: 'API Gateway endpoint URL for Prod stage for Reminder function'
+    Value: !Sub 'https://${JournalEntryApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/entries/'
