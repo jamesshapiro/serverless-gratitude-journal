@@ -8,4 +8,11 @@ source_md5 = ""
 packagetype = "Zip"
 functions = ["CreateJournalEntryFunction", "GetJournalEntriesFunction"]
 
+[function_build_definitions.c92b5b62-753e-4e3b-a4e2-eca71be29b4f]
+codeuri = "/home/james/code/serverless-gratitude-journal/src/distribution"
+runtime = "python3.9"
+source_md5 = ""
+packagetype = "Zip"
+functions = ["DistributionAuthorizer"]
+
 [layer_build_definitions]
