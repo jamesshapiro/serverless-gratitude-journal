@@ -13,9 +13,6 @@ Parameters:
   SubdomainParam:
     Type: String
     Description: The subdomain
-  DomainParam:
-    Type: String
-    Description: The domain
   HostedZoneIDParam:
     Type: String
     Description: The hosted zone ID
@@ -293,11 +290,15 @@ Resources:
               - JournalEntriesDDBTable
               - Arn
 Outputs:
-  ULIDLayer:
+  DDBTableName:
     Value:
-      Ref: ULIDLayer
-    Description: ARN For AWS ULIDLayer
-  JournalEntryApi:
+      Ref: JournalEntriesDDBTable
+    Description: DDB Table
+  WebsiteS3BucketName:
+    Value:
+      Ref: GratitudeJournalWebsiteS3Bucket
+    Description: Website S3 Bucket Name
+  JournalEntryApiEndpoint:
     Description: API Gateway endpoint URL for Prod stage for Reminder function
     Value:
       Fn::Sub: https://${JournalEntryApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/entries/
