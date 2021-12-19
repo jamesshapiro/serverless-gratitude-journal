@@ -296,7 +296,6 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
-                - edgelambda.amazonaws.com
       Policies:
         - PolicyName: root
           PolicyDocument:
@@ -304,7 +303,6 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: apigateway:GET
-                #Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-DistributionAuthorizerRole-*
                 Resource: !Sub arn:aws:apigateway:${AWS::Region}::/apikeys/${JournalEntryApiKey}
 
   ValueFunc:
@@ -316,7 +314,6 @@ Resources:
           import cfnresponse
 
           def lambda_handler(event, context):
-            print(event)
             response_code = 200
             api_gateway_client = boto3.client('apigateway')
             api_key_id = event['ResourceProperties']['ApiKeyID']
@@ -325,7 +322,6 @@ Resources:
               includeValue=True
             )
             responseValue = response['value']
-            print(f'{responseValue=}')
             responseData = {}
             responseData['Data'] = responseValue
             cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData, "CustomResourcePhysicalID", noEcho=True)
