@@ -4,8 +4,11 @@ import boto3
 import sys
 import secure_password_generator as password_gen
 
-default_stack_id = 'gratitude-00'
-
+def get_default_stack_id():
+    with open('.sam-params') as f:
+        sam_params = f.read().splitlines()
+    sam_params = [line for line in sam_params if line.startswith('MyStackName')][0]
+    return sam_params.split('=')[1]
 
 def get_salt():
     ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -28,6 +31,7 @@ default_password = password_gen.generate_password(default_password_args)
 
 cloudformation = boto3.resource('cloudformation')
 stack_id = input('stack id?: ')
+default_stack_id = get_default_stack_id()
 if stack_id == '':
     stack_id = default_stack_id
 stack = cloudformation.Stack(stack_id)

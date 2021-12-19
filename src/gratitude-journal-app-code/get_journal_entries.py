@@ -2,6 +2,7 @@ import boto3
 import os
 import ulid
 import pytz
+import json
 
 ddb_client = boto3.client('dynamodb')
 table_name = os.environ['GRATITUDE_JOURNAL_DDB_TABLE']
@@ -42,7 +43,7 @@ def get_latest_items(table_name, num_items):
 def process_items(items):
     entries = []
     for item in items:
-        ulid_str = ulid.from_str(item['SK1']['S'])
+        ulid_str = item['SK1']['S'][len('ENTRY_ID#'):]
         entry_content = item['ENTRY_CONTENT']['S']
         ulid_ulid = ulid.from_str(ulid_str)
         entry_datetime = ulid_ulid.timestamp().datetime
@@ -70,15 +71,31 @@ def process_items(items):
         elif hour > 12:
             hour -= 12
             am_pm = 'PM'
-        date_str = f'{month} {day}, {year} - {hour}{am_pm}'
-        entries.append((date_str, entry_content))
+        if minute < 10:
+            minute = '0' + str(minute)
+        else:
+            minute = str(minute)
+        date_str = f'{month} {day}, {year} - {hour}:{minute}{am_pm}'
+        entries.append((ulid_str, date_str, entry_content))
     return entries
 
 # TODO: Support pagination
 
 
 def lambda_handler(event, context):
+    response_code = 200
     response = get_latest_items(table_name, NUM_ITEMS)
     items = response['Items']
     entries = process_items(items)
-    return entries
+    response_body = {
+        'entries': entries
+    }
+    response = {
+        'statusCode': response_code,
+        'headers': {
+            'x-custom-header': 'custom header'
+        },
+        'body': json.dumps(response_body)
+    }
+    print("response: " + json.dumps(response))
+    return response

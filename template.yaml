@@ -94,6 +94,30 @@ Resources:
             Auth:
               ApiKeyRequired: true
 
+  DeleteJournalEntryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/gratitude-journal-app-code/
+      Handler: delete_journal_entry.lambda_handler
+      Runtime: python3.9
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref JournalEntriesDDBTable
+      Layers:
+        - !Ref ULIDLayer
+      Environment:
+        Variables:
+          GRATITUDE_JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
+      Events:
+        GetJournalEntriesAPIWithKeyRequired:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JournalEntryApi
+            Path: /entries/
+            Method: delete
+            Auth:
+              ApiKeyRequired: true
+
   CreateJournalEntryFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:

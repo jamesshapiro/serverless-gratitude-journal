@@ -24,7 +24,7 @@ def lambda_handler(event, context):
     if 'entry' not in body:
         return bad_request('the request body has to include an entry')
 
-    entry_content = event['body']['entry']
+    entry_content = json.loads(event['body'])['entry']
     dynamodb_client = boto3.client('dynamodb')
 
     entry_ulid = str(ulid.new())
@@ -39,7 +39,7 @@ def lambda_handler(event, context):
     )
 
     response_body = {
-        'message': 'Entry received!',
+        'message': f'Entry received! {entry_ulid}',
         'input': event
     }
 
