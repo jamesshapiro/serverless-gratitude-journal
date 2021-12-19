@@ -2,77 +2,87 @@ import dateutil.parser
 import time
 import boto3
 import json
-#from boto3.dynamodb.conditions import Key, Attr
+import datetime
 import os
 import ulid
+import pytz
 
-lam = boto3.client('lambda')
-sns_client = boto3.client('sns')
 ddb_client = boto3.client('dynamodb')
-table_name = os.environ['REMINDERS_DDB_TABLE']
-topic = os.environ['REMINDERS_TOPIC']
-phone_number = os.environ['REMINDERS_PHONE_NUMBER']
+table_name = os.environ['GRATITUDE_JOURNAL_DDB_TABLE']
 NUM_ITEMS = 100
-#email_reminder_function = os.environ['EMAIL_REMINDER_FUNCTION']
-#text_reminder_function = os.environ['TEXT_REMINDER_FUNCTION']
-#dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-#table = dynamodb.Table('reminders')
+months = {
+    1: 'January',
+    2: 'February',
+    3: 'March',
+    4: 'April',
+    5: 'May',
+    6: 'June',
+    7: 'July',
+    8: 'August',
+    9: 'September',
+    10: 'October',
+    11: 'November',
+    12: 'December'
+}
 
-def alert_is_due(item_ulid):
-    curr_unix_time = int(str(time.time()).split(".")[0])
-    print(f'{curr_unix_time=}')
-    print(f'{item_ulid=}')
-    curr_unix_ulid = ulid.from_timestamp(curr_unix_time)
-    print(f'{curr_unix_ulid=}')
-    is_elapsed = item_ulid < curr_unix_ulid
-    print(f'{is_elapsed=}')
-    return is_elapsed
+# TODO: Support pagination
+
 
 def get_latest_items(table_name, num_items):
     return ddb_client.query(
-        TableName = table_name,
+        TableName=table_name,
         Limit=num_items,
-        ScanIndexForward=True,
+        ScanIndexForward=False,
         KeyConditionExpression='#pk1 = :pk1',
         ExpressionAttributeNames={
             '#pk1': 'PK1'
         },
         ExpressionAttributeValues={
-            ':pk1': {'S': 'REMINDER'}
+            ':pk1': {'S': 'ENTRY'}
         }
     )
 
-def process_items(items, sns_client, ddb_client, topic):
-    response_items = []
+
+def process_items(items):
+    entries = []
     for item in items:
-        item_ulid = ulid.from_str(item['SK1']['S'])
-        if not alert_is_due(item_ulid):
-            return response_items
-        response_items.append(item)
-        reminder = item['reminder']['S']
+        ulid_str = ulid.from_str(item['SK1']['S'])
+        entry_content = item['ENTRY_CONTENT']['S']
+        ulid_ulid = ulid.from_str(ulid_str)
+        entry_datetime = ulid_ulid.timestamp().datetime
+        # TODO: load timezone from DDB
+        EST = pytz.timezone('US/Eastern')
+        #PST = pytz.timezone('US/Pacific')
+        #JST = pytz.timezone('Asia/Tokyo')
+        #NZST = pytz.timezone('Pacific/Auckland')
+        # TODO: load hour display preference from DDB
+        entry_datetime_local = entry_datetime.astimezone(EST)
+        # TODO: load day-month display preference from DDB
+        month, day, year, hour, minute = [
+            months[entry_datetime_local.month],
+            entry_datetime_local.day,
+            entry_datetime_local.year,
+            entry_datetime_local.hour,
+            entry_datetime_local.minute
+        ]
+        am_pm = 'AM'
+        if hour == 0 and minute == 0:
+            hour = 12
+            am_pm = 'AM'
+        elif hour == 12 and minute == 0:
+            am_pm = 'PM'
+        elif hour > 12:
+            hour -= 12
+            am_pm = 'PM'
+        date_str = f'{month} {day}, {year} - {hour}{am_pm}'
+        entries.append((date_str, entry_content))
+    return entries
 
-        response = sns_client.publish(
-            TopicArn=topic,
-            Message=reminder,
-            Subject=f'Friendly reminder of the following: {reminder}'
-        )
+# TODO: Support pagination
 
-        publish_sns_response = sns_client.publish(PhoneNumber=phone_number, Message=reminder)
-        print(publish_sns_response)
-
-        ddb_client.delete_item(
-            TableName=table_name,
-            Key = {
-                'PK1': {'S': 'REMINDER'},
-                'SK1': {'S': str(item_ulid)}
-            }
-        )
 
 def lambda_handler(event, context):
-    print(f'{topic=}')
     response = get_latest_items(table_name, NUM_ITEMS)
-    
     items = response['Items']
-    response_items = process_items(items, sns_client, ddb_client, topic)
-    
-    return response_items
+    entries = process_items(items)
+    return entries

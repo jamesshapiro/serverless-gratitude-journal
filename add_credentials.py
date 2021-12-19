@@ -4,28 +4,36 @@ import boto3
 import sys
 import secure_password_generator as password_gen
 
+default_stack_id = 'gratitude-00'
+
+
 def get_salt():
     ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     return ''.join(random.choice(ALPHABET) for i in range(256))
 
+
 default_password_args = {'--annoyingreqs': False,
-    '--help': False,
-    '--length': '24',
-    '--nolower': False,
-    '--nonumber': False,
-    '--nosymbol': False,
-    '--nosymbolambi': False,
-    '--noupper': False,
-    '--numpasswords': '1',
-    '--yesalphaambi': False
-}
+                         '--help': False,
+                         '--length': '24',
+                         '--nolower': False,
+                         '--nonumber': False,
+                         '--nosymbol': False,
+                         '--nosymbolambi': False,
+                         '--noupper': False,
+                         '--numpasswords': '1',
+                         '--yesalphaambi': False
+                         }
 
 default_password = password_gen.generate_password(default_password_args)
 
 cloudformation = boto3.resource('cloudformation')
-stack = cloudformation.Stack('gratitude-03')
+stack_id = input('stack id?: ')
+if stack_id == '':
+    stack_id = default_stack_id
+stack = cloudformation.Stack(stack_id)
 outputs = stack.outputs
-ddb_output = [output for output in outputs if output['OutputKey'] == 'DDBTableName'][0]
+ddb_output = [output for output in outputs if output['OutputKey']
+              == 'DDBTableName'][0]
 table_name = ddb_output['OutputValue']
 
 salt = get_salt()
