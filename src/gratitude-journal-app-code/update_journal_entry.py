@@ -1,7 +1,6 @@
 import json
 import boto3
 import os
-import ulid
 
 table_name = os.environ['GRATITUDE_JOURNAL_DDB_TABLE']
 
@@ -27,7 +26,7 @@ def lambda_handler(event, context):
     entry_content = body['entry']
     dynamodb_client = boto3.client('dynamodb')
 
-    entry_ulid = str(ulid.new())
+    entry_ulid = body['entry_ulid']
 
     response = dynamodb_client.put_item(
         TableName=table_name,
@@ -39,7 +38,7 @@ def lambda_handler(event, context):
     )
 
     response_body = {
-        'message': f'Entry received! {entry_ulid}',
+        'message': f'Entry updated! {entry_ulid}',
         'input': event
     }
 

@@ -34,7 +34,7 @@ Resources:
         Variables:
           GRATITUDE_JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
       Events:
-        CreateJournalEntryAPIWithKeyRequired:
+        JournalEntryAPIEvent:
           Type: Api
           Properties:
             RestApiId: !Ref JournalEntryApi
@@ -70,11 +70,11 @@ Resources:
       KeyType: "API_KEY"
       UsagePlanId: !Ref JournalEntryUsagePlan
 
-  GetJournalEntriesFunction:
+  ReadJournalEntryFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/gratitude-journal-app-code/
-      Handler: get_journal_entries.lambda_handler
+      Handler: read_journal_entry.lambda_handler
       Runtime: python3.9
       Policies:
         - DynamoDBReadPolicy:
@@ -85,7 +85,7 @@ Resources:
         Variables:
           GRATITUDE_JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
       Events:
-        GetJournalEntriesAPIWithKeyRequired:
+        JournalEntryAPIEvent:
           Type: Api
           Properties:
             RestApiId: !Ref JournalEntryApi
@@ -109,7 +109,7 @@ Resources:
         Variables:
           GRATITUDE_JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
       Events:
-        GetJournalEntriesAPIWithKeyRequired:
+        JournalEntryAPIEvent:
           Type: Api
           Properties:
             RestApiId: !Ref JournalEntryApi
@@ -118,23 +118,29 @@ Resources:
             Auth:
               ApiKeyRequired: true
 
-  CreateJournalEntryFunctionLogGroup:
-    Type: AWS::Logs::LogGroup
+  UpdateJournalEntryFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      LogGroupName:
-        Fn::Join:
-          - ""
-          - - /aws/lambda/
-            - Ref: CreateJournalEntryFunction
-
-  GetJournalEntriesFunctionLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName:
-        Fn::Join:
-          - ""
-          - - /aws/lambda/
-            - Ref: GetJournalEntriesFunction
+      CodeUri: src/gratitude-journal-app-code/
+      Handler: update_journal_entry.lambda_handler
+      Runtime: python3.9
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref JournalEntriesDDBTable
+      Layers:
+        - !Ref ULIDLayer
+      Environment:
+        Variables:
+          GRATITUDE_JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
+      Events:
+        JournalEntryAPIEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JournalEntryApi
+            Path: /entries/
+            Method: put
+            Auth:
+              ApiKeyRequired: true
 
   JournalEntriesDDBTable:
     Type: AWS::DynamoDB::Table

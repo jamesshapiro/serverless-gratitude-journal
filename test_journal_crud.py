@@ -57,13 +57,27 @@ def test_delete(url, api_key, entry_ulid):
     response = requests.delete(url, headers=headers)
     json_response = json.loads(response.text)
     print(json_response)
+
+def test_update(url, api_key, entry_ulid):
+    headers = {'x-api-key': api_key}
+    greeting = random.choice(greetings)
+    payload = {
+        'entry': f'UPDATE: {greeting} World!',
+        'entry_ulid': entry_ulid
+    }
+    headers = {'x-api-key': api_key}
+    response = requests.put(url, data=json.dumps(payload), headers=headers)
+    json_response = json.loads(response.text)
+    print(json_response['message'])
         
 url, api_key = get_api_info()
 #entries = test_read(url, api_key)
-#test_create(url, api_key, 11)
+#test_create(url, api_key, 3)
 entries = test_read(url, api_key)
 latest_entry = entries[0]
 latest_ulid = latest_entry[0]
+test_update(url, api_key, latest_ulid)
+entries = test_read(url, api_key)
 test_delete(url, api_key, latest_ulid)
 entries = test_read(url, api_key)
     
