@@ -22,22 +22,22 @@ months = {
     12: 'December'
 }
 
-# TODO: Support pagination
 
-
-def get_latest_items(table_name, num_items):
-    return ddb_client.query(
-        TableName=table_name,
-        Limit=num_items,
-        ScanIndexForward=False,
-        KeyConditionExpression='#pk1 = :pk1',
-        ExpressionAttributeNames={
-            '#pk1': 'PK1'
-        },
-        ExpressionAttributeValues={
-            ':pk1': {'S': 'ENTRY'}
+def get_latest_items(table_name, exclusive_start_key, num_items):
+    kwargs = {
+        'TableName': table_name,
+        'Limit': num_items,
+        'ScanIndexForward': False,
+        'KeyConditionExpression': '#pk1 = :pk1',
+        'ExpressionAttributeNames': {'#pk1': 'PK1'},
+        'ExpressionAttributeValues': {':pk1': {'S': 'ENTRY'}}
+    }
+    if exclusive_start_key:
+        kwargs['ExclusiveStartKey'] = {
+            'PK1': {'S': 'ENTRY'},
+            'SK1': {'S': f'ENTRY_ID#{exclusive_start_key}'}
         }
-    )
+    return ddb_client.query(**kwargs)
 
 
 def process_items(items):
@@ -79,23 +79,28 @@ def process_items(items):
         entries.append((ulid_str, date_str, entry_content))
     return entries
 
-# TODO: Support pagination
-
 
 def lambda_handler(event, context):
     response_code = 200
-    response = get_latest_items(table_name, NUM_ITEMS)
+    num_entries = 12
+    query_string_parameters = None
+    exclusive_start_key = None
+    if 'queryStringParameters' in event:
+        query_string_parameters = event['queryStringParameters']
+        if 'exclusive_start_key' in query_string_parameters:
+            exclusive_start_key = query_string_parameters['exclusive_start_key']
+        if 'num_entries' in query_string_parameters:
+            num_entries = int(event['queryStringParameters']['num_entries'])
+    response = get_latest_items(table_name, exclusive_start_key, num_entries)
     items = response['Items']
     entries = process_items(items)
-    response_body = {
-        'entries': entries
-    }
+    response_body = {'entries': entries}
     response = {
         'statusCode': response_code,
         'headers': {
             'x-custom-header': 'custom header'
         },
-        'body': json.dumps(response_body)
+        'body': json.dumps(response)
     }
     print("response: " + json.dumps(response))
     return response

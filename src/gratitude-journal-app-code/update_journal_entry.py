@@ -17,12 +17,7 @@ def bad_request(message):
 def lambda_handler(event, context):
     response_code = 200
     print("request: " + json.dumps(event))
-    if 'body' not in event:
-        return bad_request('you have to include a request body')
     body = json.loads(event['body'])
-    if 'entry' not in body:
-        return bad_request('the request body has to include an entry')
-
     entry_content = body['entry']
     dynamodb_client = boto3.client('dynamodb')
 

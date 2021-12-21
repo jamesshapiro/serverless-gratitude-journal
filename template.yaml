@@ -373,7 +373,7 @@ Outputs:
     Value: !Ref GratitudeJournalWebsiteS3Bucket
     Description: Website S3 Bucket Name
   JournalEntryApiEndpoint:
-    Description: "API Gateway endpoint URL for Prod stage for Reminder function"
+    Description: "API Gateway endpoint URL for Prod stage for Gratitude Journal CRUD operations"
     Value: !Sub "https://${JournalEntryApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/entries/"
   APIKeyValue:
     Description: "The actual API Key Value"
