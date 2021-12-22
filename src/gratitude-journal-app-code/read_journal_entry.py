@@ -6,7 +6,7 @@ import json
 
 ddb_client = boto3.client('dynamodb')
 table_name = os.environ['GRATITUDE_JOURNAL_DDB_TABLE']
-NUM_ITEMS = 100
+DEFAULT_NUM_ENTRIES = 12
 months = {
     1: 'January',
     2: 'February',
@@ -23,7 +23,7 @@ months = {
 }
 
 
-def get_latest_items(table_name, exclusive_start_key, num_items):
+def read_entries(table_name, exclusive_start_key, num_items):
     kwargs = {
         'TableName': table_name,
         'Limit': num_items,
@@ -40,7 +40,7 @@ def get_latest_items(table_name, exclusive_start_key, num_items):
     return ddb_client.query(**kwargs)
 
 
-def process_items(items):
+def process_entries(items):
     entries = []
     for item in items:
         ulid_str = item['SK1']['S'][len('ENTRY_ID#'):]
@@ -82,25 +82,20 @@ def process_items(items):
 
 def lambda_handler(event, context):
     response_code = 200
-    num_entries = 12
-    query_string_parameters = None
     exclusive_start_key = None
+    num_entries = DEFAULT_NUM_ENTRIES
     if 'queryStringParameters' in event:
         query_string_parameters = event['queryStringParameters']
-        if 'exclusive_start_key' in query_string_parameters:
-            exclusive_start_key = query_string_parameters['exclusive_start_key']
-        if 'num_entries' in query_string_parameters:
-            num_entries = int(event['queryStringParameters']['num_entries'])
-    response = get_latest_items(table_name, exclusive_start_key, num_entries)
-    items = response['Items']
-    entries = process_items(items)
-    response_body = {'entries': entries}
-    response = {
+        exclusive_start_key = query_string_parameters.get(
+            'exclusive_start_key', None)
+        num_entries = int(query_string_parameters.get(
+            'num_entries', DEFAULT_NUM_ENTRIES))
+    response = read_entries(table_name, exclusive_start_key, num_entries)
+    result = {
         'statusCode': response_code,
         'headers': {
             'x-custom-header': 'custom header'
         },
         'body': json.dumps(response)
     }
-    print("response: " + json.dumps(response))
-    return response
+    return result

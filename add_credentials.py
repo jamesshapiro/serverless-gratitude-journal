@@ -4,11 +4,14 @@ import boto3
 import sys
 import secure_password_generator as password_gen
 
+
 def get_default_stack_id():
     with open('.sam-params') as f:
         sam_params = f.read().splitlines()
-    sam_params = [line for line in sam_params if line.startswith('MyStackName')][0]
+    sam_params = [
+        line for line in sam_params if line.startswith('MyStackName')][0]
     return sam_params.split('=')[1]
+
 
 def get_salt():
     ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -55,7 +58,7 @@ ddb_client = boto3.client('dynamodb')
 ddb_client.put_item(
     TableName=table_name,
     Item={
-        'PK1': {'S': f'USER#{username}'},
+        'PK1': {'S': f'USER'},
         'SK1': {'S': f'USER#{username}'},
         'SALT': {'S': salt},
         'HASH': {'S': hash_value}

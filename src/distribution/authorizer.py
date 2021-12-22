@@ -5,13 +5,14 @@ import boto3
 unauthorized_error = {
     "status": '401',
     "statusDescription": 'Unauthorized',
-    "body"             : 'Unauthorized',
+    "body": 'Unauthorized',
     "headers": {
         'www-authenticate': [
-            {"key": 'WWW-Authenticate', "value":'Basic'}
+            {"key": 'WWW-Authenticate', "value": 'Basic'}
         ]
-    }  
+    }
 }
+
 
 def lambda_handler(event, context):
     session = boto3.Session()
@@ -45,10 +46,10 @@ def lambda_handler(event, context):
         username = username_and_password[0]
         password = username_and_password[1]
         response = ddb_client.get_item(
-            TableName = TABLE_NAME,
+            TableName=TABLE_NAME,
             Key={
                 'PK1': {
-                    'S': f'USER#{username}',
+                    'S': f'USER',
                 },
                 'SK1': {
                     'S': f'USER#{username}',
