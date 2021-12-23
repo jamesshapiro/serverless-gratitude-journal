@@ -84,7 +84,7 @@ def lambda_handler(event, context):
     response_code = 200
     exclusive_start_key = None
     num_entries = DEFAULT_NUM_ENTRIES
-    if 'queryStringParameters' in event:
+    if 'queryStringParameters' in event and event['queryStringParameters']:
         query_string_parameters = event['queryStringParameters']
         exclusive_start_key = query_string_parameters.get(
             'exclusive_start_key', None)
@@ -94,7 +94,10 @@ def lambda_handler(event, context):
     result = {
         'statusCode': response_code,
         'headers': {
-            'x-custom-header': 'custom header'
+            'Access-Control-Allow-Headers': "Content-Type,X-Amz-Date,X-Amz-Security-Token,Authorization,X-Api-Key,X-Requested-With,Accept,Access-Control-Allow-Methods,Access-Control-Allow-Origin,Access-Control-Allow-Headers",
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+            "X-Requested-With": "*"
         },
         'body': json.dumps(response)
     }

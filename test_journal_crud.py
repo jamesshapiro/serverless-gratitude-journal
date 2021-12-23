@@ -66,8 +66,7 @@ def test_read(url, api_key, exclusive_start_key=None, num_entries=DEFAULT_NUM_EN
         print(item)
     if 'LastEvaluatedKey' in response_text:
         print(response_text['LastEvaluatedKey'])
-    return response_text
-    # print(response)
+    return response
 
 
 def test_delete(url, api_key, entry_ulid):
@@ -95,6 +94,8 @@ url, api_key = get_api_info()
 #entries = test_read(url, api_key)
 #test_create(url, api_key, 30)
 response = test_read(url, api_key)
+print(response.headers)
+sys.exit(0)
 last_evaluated_key = response['LastEvaluatedKey']['SK1']['S']
 print(f'{last_evaluated_key=}')
 last_evaluated_key_ulid = last_evaluated_key.split('#')[1]

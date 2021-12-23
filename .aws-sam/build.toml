@@ -7,7 +7,7 @@ runtime = "python3.9"
 architecture = "x86_64"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["CreateJournalEntryFunction", "ReadJournalEntryFunction", "DeleteJournalEntryFunction", "UpdateJournalEntryFunction"]
+functions = ["CreateJournalEntryFunction", "ReadJournalEntryFunction", "DeleteJournalEntryFunction2", "UpdateJournalEntryFunction"]
 
 [function_build_definitions.04eb76f9-fafb-4c5d-8835-f7ad29df5084]
 codeuri = "/Users/jamesshapiro/code/serverless-gratitude-app/src/distribution"

@@ -9,6 +9,11 @@ Globals:
   Function:
     MemorySize: 128
     Timeout: 60
+  Api:
+    Cors:
+      AllowOrigin: "'*'"
+      AllowHeaders: "'Content-Type,x-api-key'"
+      AllowMethods: "'GET,PUT,POST,DELETE,OPTIONS'"
 
 Parameters:
   SubdomainParam:
@@ -48,7 +53,7 @@ Resources:
     Properties:
       StageName: Prod
       Auth:
-        ApiKeyRequired: true
+        AddDefaultAuthorizerToCorsPreflight: false
 
   JournalEntryApiKey:
     Type: AWS::ApiGateway::ApiKey
@@ -334,14 +339,26 @@ Resources:
               - Effect: Allow
                 Action: apigateway:GET
                 Resource: !Sub arn:aws:apigateway:${AWS::Region}::/apikeys/${JournalEntryApiKey}
+              # - Effect: Allow
+              #   Action: apigateway:PUT
+              #   Resource: !Sub arn:aws:apigateway:${AWS::Region}::/restapis/${JournalEntryApi}
 
   ValueFunc:
     Type: AWS::Lambda::Function
     Properties:
+      # Environment:
+      #   Variables:
+      #     API_ENDPOINT: !Ref JournalEntryApiEndpoint
+      # DependsOn:
+      #   - !Ref CreateJournalEntryFunction
+      #   - !Ref ReadJournalEntryFunction
+      #   - !Ref UpdateJournalEntryFunction
+      #   - !Ref DeleteJournalEntryFunction
       Code:
         ZipFile: |
           import boto3
           import cfnresponse
+          # import os
 
           def lambda_handler(event, context):
             response_code = 200
@@ -351,6 +368,8 @@ Resources:
               apiKey=api_key_id,
               includeValue=True
             )
+            # api_endpoint = os.environ['API_ENDPOINT']
+
             responseValue = response['value']
             responseData = {}
             responseData['Data'] = responseValue
