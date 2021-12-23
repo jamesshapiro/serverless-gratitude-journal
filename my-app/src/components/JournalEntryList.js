@@ -4,28 +4,61 @@ import JournalEntry from "./JournalEntry";
 class JournalEntryList extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { entries: [], date: new Date() };
+    this.state = { entries: [], exclusiveStartKey: "" };
   }
 
-  componentDidMount() {
-    const url = process.env.REACT_APP_URL;
+  getNewEntries() {
+    var url = process.env.REACT_APP_URL + "?num_entries=3";
+    if (this.state.exclusiveStartKey) {
+      url += `&exclusive_start_key=${this.state.exclusiveStartKey}`;
+    }
+    console.log(url);
     fetch(url, {
       method: "GET",
-      //mode: "cors",
       headers: {
         "x-api-key": process.env.REACT_APP_API_KEY,
       },
     })
       .then((response) => response.json())
-      .then((data) => console.log(data));
+      .then((data) => {
+        console.log(data);
+        console.log(data.Items);
+        var oldEntries = this.state.entries;
+        var newState = { entries: [...oldEntries, ...data.Items] };
+        if (data.LastEvaluatedKey) {
+          newState["exclusiveStartKey"] = data.LastEvaluatedKey.SK1.S.slice(
+            "ENTRY_ID#".length
+          );
+        }
+        this.setState(newState);
+      });
+  }
+
+  loadMoreEntries = (event) => {
+    event.preventDefault();
+    this.getNewEntries();
+  };
+
+  componentDidMount(props, state) {
+    var url = process.env.REACT_APP_URL + "?num_entries=3";
+    this.getNewEntries();
   }
 
   render() {
     return (
-      <div>
-        <h1>Hello, world!</h1>
-        <h2>It is {this.state.date.toLocaleTimeString()}.</h2>
-      </div>
+      <>
+        <div>
+          <h2>Gratitude Journal</h2>
+        </div>
+        <ul className="entries">
+          {Object.keys(this.state.entries).map((key) => (
+            <JournalEntry key={key} details={this.state.entries[key]} />
+          ))}
+        </ul>
+        <form onSubmit={this.loadMoreEntries}>
+          <button type="submit">+ Add Entries</button>
+        </form>
+      </>
     );
   }
 }

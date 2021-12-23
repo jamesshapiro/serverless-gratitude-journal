@@ -40,7 +40,7 @@ def read_entries(table_name, exclusive_start_key, num_items):
     return ddb_client.query(**kwargs)
 
 
-def process_entries(items):
+def add_legible_time(items):
     entries = []
     for item in items:
         ulid_str = item['SK1']['S'][len('ENTRY_ID#'):]
@@ -63,9 +63,10 @@ def process_entries(items):
             entry_datetime_local.minute
         ]
         am_pm = 'AM'
-        if hour == 0 and minute == 0:
+        if hour == 0:
             hour = 12
-            am_pm = 'AM'
+            if minute == 0:
+                am_pm = 'AM'
         elif hour == 12 and minute == 0:
             am_pm = 'PM'
         elif hour > 12:
@@ -76,7 +77,8 @@ def process_entries(items):
         else:
             minute = str(minute)
         date_str = f'{month} {day}, {year} - {hour}:{minute}{am_pm}'
-        entries.append((ulid_str, date_str, entry_content))
+        entries.append(
+            {'ulid': ulid_str, 'legible_date': date_str, 'entry_content': entry_content})
     return entries
 
 
@@ -91,6 +93,8 @@ def lambda_handler(event, context):
         num_entries = int(query_string_parameters.get(
             'num_entries', DEFAULT_NUM_ENTRIES))
     response = read_entries(table_name, exclusive_start_key, num_entries)
+    items_with_time = add_legible_time(response['Items'])
+    response['Items'] = items_with_time
     result = {
         'statusCode': response_code,
         'headers': {

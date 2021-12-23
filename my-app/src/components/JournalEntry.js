@@ -1,22 +1,16 @@
-import React from 'react'
+import React from "react";
+import "../App.css";
 
 class JournalEntry extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {entries: [], date: new Date()};
-  }
-
-  componentDidMount() {
-  }
-
   render() {
+    const { entry_content, legible_date } = this.props.details;
     return (
-      <div>
-        <h1>Hello, world!</h1>
-        <h2>It is {this.state.date.toLocaleTimeString()}.</h2>
+      <div className="journal-entry">
+        <div className="journal-entry-date">{legible_date}</div>
+        <div className="journal-entry-content">{entry_content}</div>
       </div>
     );
   }
 }
 
-export default JournalEntry
+export default JournalEntry;
