@@ -3,11 +3,26 @@
 }
 
 .App-header {
-  min-height: 100vh;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
   color: black;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  margin: 20px 125px 0 125px;
+  /* border: 10px solid goldenrod; */
+  /* height: 100vh; */
+}
+
+.entry-text-area {
+  display: block;
+}
+
+.box {
+  /* border: 5px solid red; */
+  width: 50vw;
 }
 
 .journal-entry-date {

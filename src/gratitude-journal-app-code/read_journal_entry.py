@@ -76,7 +76,7 @@ def add_legible_time(items):
             minute = '0' + str(minute)
         else:
             minute = str(minute)
-        date_str = f'{month} {day}, {year} - {hour}:{minute}{am_pm}'
+        date_str = f'{month} {day}, {year}'  # - {hour}:{minute}{am_pm}'
         entries.append(
             {'ulid': ulid_str, 'legible_date': date_str, 'entry_content': entry_content})
     return entries
