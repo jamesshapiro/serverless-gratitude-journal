@@ -9,26 +9,43 @@ class App extends React.Component {
     this.state = { entries: [], exclusiveStartKey: "" };
   }
 
-  submitNewEntry(entry) {
+  submitEntry = (event) => {
+    event.preventDefault();
+    const entry = {
+      entry_content: this.entryRef.current.value,
+    };
     const url = process.env.REACT_APP_URL;
-    console.log("submitting to AWS!");
     const data = { entry: entry["entry_content"] };
+    this.setState({ entries: [], exclusiveStartKey: "" });
     fetch(url, {
       method: "POST",
       headers: {
         "x-api-key": process.env.REACT_APP_API_KEY,
       },
       body: JSON.stringify(data),
+    }).then((response) => {
+      this.getNewEntries();
     });
-  }
+    event.currentTarget.reset();
+  };
 
-  getNewEntries() {
+  deleteEntryCleanup = () => {
+    console.log("HELLLLOOOOO");
+    this.setState({ entries: [], exclusiveStartKey: "" });
+    this.getNewEntries(false);
+  };
+
+  getNewEntries(useExclusiveStartKey) {
+    console.log(`excl start key ${this.state.exclusiveStartKey}`);
     const NO_ENTRIES_LEFT = "NO ENTRIES LEFT";
     var url = process.env.REACT_APP_URL + "?num_entries=3";
-    if (this.state.exclusiveStartKey === NO_ENTRIES_LEFT) {
+    if (
+      useExclusiveStartKey &&
+      this.state.exclusiveStartKey === NO_ENTRIES_LEFT
+    ) {
       return;
     }
-    if (this.state.exclusiveStartKey) {
+    if (useExclusiveStartKey && this.state.exclusiveStartKey) {
       url += `&exclusive_start_key=${this.state.exclusiveStartKey}`;
     }
     fetch(url, {
@@ -39,8 +56,6 @@ class App extends React.Component {
     })
       .then((response) => response.json())
       .then((data) => {
-        // console.log(data);
-        // console.log(data.Items);
         var oldEntries = this.state.entries;
         var newState = { entries: [...oldEntries, ...data.Items] };
         if (data.LastEvaluatedKey) {
@@ -58,39 +73,7 @@ class App extends React.Component {
     if (event) {
       event.preventDefault();
     }
-    this.getNewEntries();
-  };
-
-  submitEntryButton = (event) => {
-    event.preventDefault();
-    const months = {
-      1: "January",
-      2: "February",
-      3: "March",
-      4: "April",
-      5: "May",
-      6: "June",
-      7: "July",
-      8: "August",
-      9: "September",
-      10: "October",
-      11: "November",
-      12: "December",
-    };
-    const today = new Date();
-    const day = String(today.getDate());
-    const month = months[today.getMonth() + 1];
-    const year = today.getFullYear();
-    const entry = {
-      entry_content: this.entryRef.current.value,
-      legible_date: `${month} ${day}, ${year}`,
-    };
-    const entries = [...this.state.entries];
-    entries.unshift(entry);
-    console.log(entries);
-    this.setState({ entries });
-    this.submitNewEntry(entry);
-    event.currentTarget.reset();
+    this.getNewEntries(true);
   };
 
   render() {
@@ -99,6 +82,7 @@ class App extends React.Component {
         <div>
           <JournalEntryList
             loadMoreEntries={this.loadMoreEntries}
+            deleteEntryCleanup={this.deleteEntryCleanup}
             entries={this.state.entries}
             exclusiveStartKey={this.state.exclusiveStartKey}
           />
@@ -111,7 +95,7 @@ class App extends React.Component {
         <div>
           <div className="box">
             <h2>Write Entry</h2>
-            <form onSubmit={this.submitEntryButton}>
+            <form onSubmit={this.submitEntry}>
               <textarea
                 className="entry-text-area"
                 name="entry"

@@ -27,6 +27,7 @@ def read_entries(table_name, exclusive_start_key, num_items):
     kwargs = {
         'TableName': table_name,
         'Limit': num_items,
+        'ConsistentRead': True,
         'ScanIndexForward': False,
         'KeyConditionExpression': '#pk1 = :pk1',
         'ExpressionAttributeNames': {'#pk1': 'PK1'},

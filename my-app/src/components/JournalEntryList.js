@@ -8,7 +8,7 @@ class JournalEntryList extends React.Component {
   }
 
   componentDidMount(props, state) {
-    this.props.loadMoreEntries();
+    this.props.loadMoreEntries(false);
   }
 
   buttonLoadMoreEntries(event) {
@@ -23,7 +23,11 @@ class JournalEntryList extends React.Component {
           <h2>Gratitude Journal</h2>
           <ul className="entries">
             {Object.keys(this.props.entries).map((key) => (
-              <JournalEntry key={key} details={this.props.entries[key]} />
+              <JournalEntry
+                key={key}
+                details={this.props.entries[key]}
+                deleteEntryCleanup={this.props.deleteEntryCleanup}
+              />
             ))}
           </ul>
         </div>

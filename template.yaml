@@ -156,8 +156,6 @@ Resources:
         - AttributeName: "SK1"
           AttributeType: "S"
       BillingMode: "PAY_PER_REQUEST"
-      ContributorInsightsSpecification:
-        Enabled: true
       KeySchema:
         - AttributeName: "PK1"
           KeyType: "HASH"
