@@ -32,7 +32,12 @@ class JournalEntry extends React.Component {
         <div className="journal-entry">
           <div className="journal-entry-date">{legible_date}</div>
           <div className="journal-entry-content">{entry_content}</div>
-          <button onClick={this.clickTheButton}>X</button>
+          <span
+            className="journal-entry-delete-button"
+            onClick={this.clickTheButton}
+          >
+            DELETE
+          </span>
         </div>
       </>
     );

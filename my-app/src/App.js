@@ -159,7 +159,7 @@ class App extends React.Component {
   }
 
   render() {
-    return <>{this.showPage()}</>;
+    return <div className="container">{this.showPage()}</div>;
   }
 }
 
