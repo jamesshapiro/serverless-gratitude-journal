@@ -82,8 +82,10 @@ class App extends React.Component {
   };
 
   showEntries = () => {
-    var newState = { showEntries: true, entries: [], exclusiveStartKey: "" };
+    const newState = { showEntries: true };
+    // var newState = { showEntries: true, entries: [], exclusiveStartKey: "" };
     this.setState(newState);
+    // this.getNewEntries();
   };
 
   showCreateEntry = () => {
@@ -100,7 +102,16 @@ class App extends React.Component {
     if (this.state.showEntries) {
       return (
         <>
-          <h2>Gratitude Journal</h2>
+          <h2>
+            <span onClick={this.showEntries}>Gratitude Journal,</span>{" "}
+            <span
+              onClick={this.showCreateEntry}
+              style={{ color: "red", cursor: "pointer" }}
+            >
+              +Entry
+            </span>
+          </h2>
+          <h2></h2>
           <InfiniteScroll
             dataLength={this.state.entries.length}
             next={this.getNewEntries}
@@ -116,25 +127,22 @@ class App extends React.Component {
               />
             ))}
           </InfiniteScroll>
-          {/* <JournalEntryList
-            loadMoreEntries={this.loadMoreEntries}
-            deleteEntryCleanup={this.deleteEntryCleanup}
-            entries={this.state.entries}
-            exclusiveStartKey={this.state.exclusiveStartKey}
-          />
-          {this.state.exclusiveStartKey !== "NO ENTRIES LEFT" && (
-            <form onSubmit={this.loadMoreEntries}>
-              <button type="submit">More Entries</button>
-            </form>
-          )}
-          <button onClick={this.showCreateEntry}>Write Entry</button> */}
         </>
       );
     } else {
       return (
         <div>
           <div className="box">
-            <h2>Write Entry</h2>
+            <h2>
+              <span
+                onClick={this.showEntries}
+                style={{ color: "red", cursor: "pointer" }}
+              >
+                Gratitude Journal,
+              </span>{" "}
+              <span onClick={this.showCreateEntry}>+Entry</span>
+            </h2>
+
             <form onSubmit={this.submitEntry}>
               <textarea
                 className="entry-text-area"
@@ -145,7 +153,6 @@ class App extends React.Component {
               <button type="submit">Submit Entry</button>
             </form>
           </div>
-          <button onClick={this.showEntries}>Show Entries</button>
         </div>
       );
     }
