@@ -11,11 +11,6 @@ class JournalEntryList extends React.Component {
     this.props.loadMoreEntries(false);
   }
 
-  buttonLoadMoreEntries(event) {
-    event.preventDefault();
-    console.log(event);
-  }
-
   render() {
     return (
       <>

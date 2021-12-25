@@ -1,5 +1,6 @@
 import "./App.css";
-import JournalEntryList from "./components/JournalEntryList";
+import JournalEntry from "./components/JournalEntry";
+import InfiniteScroll from "react-infinite-scroll-component";
 import React from "react";
 
 class App extends React.Component {
@@ -34,9 +35,11 @@ class App extends React.Component {
     this.getNewEntries(false);
   };
 
-  getNewEntries(useExclusiveStartKey) {
+  getNewEntries = () => {
+    console.log("getting new entries!");
+    var useExclusiveStartKey = true;
     const NO_ENTRIES_LEFT = "NO ENTRIES LEFT";
-    var url = process.env.REACT_APP_URL + "?num_entries=3";
+    var url = process.env.REACT_APP_URL + "?num_entries=10";
     if (
       useExclusiveStartKey &&
       this.state.exclusiveStartKey === NO_ENTRIES_LEFT
@@ -65,6 +68,10 @@ class App extends React.Component {
         }
         this.setState(newState);
       });
+  };
+
+  componentDidMount() {
+    this.getNewEntries();
   }
 
   loadMoreEntries = (event) => {
@@ -75,7 +82,7 @@ class App extends React.Component {
   };
 
   showEntries = () => {
-    var newState = { showEntries: true };
+    var newState = { showEntries: true, entries: [], exclusiveStartKey: "" };
     this.setState(newState);
   };
 
@@ -85,10 +92,31 @@ class App extends React.Component {
   };
 
   showPage() {
+    console.log(this.state.entries.length);
+    console.log(`excl start key ${this.state.exclusiveStartKey}`);
+    console.log(
+      `has more: ${this.state.exclusiveStartKey !== "NO ENTRIES LEFT"}`
+    );
     if (this.state.showEntries) {
       return (
-        <div>
-          <JournalEntryList
+        <>
+          <h2>Gratitude Journal</h2>
+          <InfiniteScroll
+            dataLength={this.state.entries.length}
+            next={this.getNewEntries}
+            hasMore={this.state.exclusiveStartKey !== "NO ENTRIES LEFT"}
+            loader={<h4>Loading...</h4>}
+            useWindow={true}
+          >
+            {Object.keys(this.state.entries).map((key) => (
+              <JournalEntry
+                key={key}
+                details={this.state.entries[key]}
+                deleteEntryCleanup={this.deleteEntryCleanup}
+              />
+            ))}
+          </InfiniteScroll>
+          {/* <JournalEntryList
             loadMoreEntries={this.loadMoreEntries}
             deleteEntryCleanup={this.deleteEntryCleanup}
             entries={this.state.entries}
@@ -99,8 +127,8 @@ class App extends React.Component {
               <button type="submit">More Entries</button>
             </form>
           )}
-          <button onClick={this.showCreateEntry}>Write Entry</button>
-        </div>
+          <button onClick={this.showCreateEntry}>Write Entry</button> */}
+        </>
       );
     } else {
       return (

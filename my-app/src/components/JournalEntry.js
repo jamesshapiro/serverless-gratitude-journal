@@ -8,7 +8,6 @@ class JournalEntry extends React.Component {
     this.state = { ulid: "" };
   }
   clickTheButton() {
-    console.log(this.state.ulid);
     const url = process.env.REACT_APP_URL + `?ulid=${this.state.ulid}`;
     fetch(url, {
       method: "DELETE",

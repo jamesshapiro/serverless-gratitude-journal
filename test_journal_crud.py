@@ -92,7 +92,7 @@ def test_update(url, api_key, entry_ulid):
 
 url, api_key = get_api_info()
 #entries = test_read(url, api_key)
-#test_create(url, api_key, 30)
+test_create(url, api_key, 50)
 response = test_read(url, api_key)
 print(response.headers)
 sys.exit(0)
