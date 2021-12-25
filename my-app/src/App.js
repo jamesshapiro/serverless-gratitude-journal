@@ -6,7 +6,7 @@ class App extends React.Component {
   entryRef = React.createRef();
   constructor(props) {
     super(props);
-    this.state = { entries: [], exclusiveStartKey: "" };
+    this.state = { entries: [], exclusiveStartKey: "", showEntries: true };
   }
 
   submitEntry = (event) => {
@@ -30,13 +30,11 @@ class App extends React.Component {
   };
 
   deleteEntryCleanup = () => {
-    console.log("HELLLLOOOOO");
     this.setState({ entries: [], exclusiveStartKey: "" });
     this.getNewEntries(false);
   };
 
   getNewEntries(useExclusiveStartKey) {
-    console.log(`excl start key ${this.state.exclusiveStartKey}`);
     const NO_ENTRIES_LEFT = "NO ENTRIES LEFT";
     var url = process.env.REACT_APP_URL + "?num_entries=3";
     if (
@@ -76,9 +74,19 @@ class App extends React.Component {
     this.getNewEntries(true);
   };
 
-  render() {
-    return (
-      <div className="container">
+  showEntries = () => {
+    var newState = { showEntries: true };
+    this.setState(newState);
+  };
+
+  showCreateEntry = () => {
+    var newState = { showEntries: false };
+    this.setState(newState);
+  };
+
+  showPage() {
+    if (this.state.showEntries) {
+      return (
         <div>
           <JournalEntryList
             loadMoreEntries={this.loadMoreEntries}
@@ -91,7 +99,11 @@ class App extends React.Component {
               <button type="submit">More Entries</button>
             </form>
           )}
+          <button onClick={this.showCreateEntry}>Write Entry</button>
         </div>
+      );
+    } else {
+      return (
         <div>
           <div className="box">
             <h2>Write Entry</h2>
@@ -105,9 +117,14 @@ class App extends React.Component {
               <button type="submit">Submit Entry</button>
             </form>
           </div>
+          <button onClick={this.showEntries}>Show Entries</button>
         </div>
-      </div>
-    );
+      );
+    }
+  }
+
+  render() {
+    return <>{this.showPage()}</>;
   }
 }
 
