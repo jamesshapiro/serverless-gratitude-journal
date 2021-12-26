@@ -4,10 +4,9 @@ import "../App.css";
 class JournalEntry extends React.Component {
   constructor(props) {
     super(props);
-    this.clickTheButton = this.clickTheButton.bind(this);
     this.state = { ulid: "" };
   }
-  clickTheButton() {
+  deleteEntry = () => {
     const url = process.env.REACT_APP_URL + `?ulid=${this.state.ulid}`;
     fetch(url, {
       method: "DELETE",
@@ -17,12 +16,23 @@ class JournalEntry extends React.Component {
     }).then((response) => {
       this.props.deleteEntryCleanup();
     });
-  }
+  };
 
   componentDidMount() {
     const ulid = this.props.details.ulid;
     const newState = { ulid: ulid };
     this.setState(newState);
+  }
+
+  listStringToUL(entry_content) {
+    const as_list = JSON.parse(entry_content);
+    return (
+      <ul>
+        {as_list.map((key) => (
+          <li>{key}</li>
+        ))}
+      </ul>
+    );
   }
 
   render() {
@@ -31,10 +41,12 @@ class JournalEntry extends React.Component {
       <>
         <div className="journal-entry">
           <div className="journal-entry-date">{legible_date}</div>
-          <div className="journal-entry-content">{entry_content}</div>
+          <div className="journal-entry-content">
+            {this.listStringToUL(entry_content)}
+          </div>
           <span
             className="journal-entry-delete-button"
-            onClick={this.clickTheButton}
+            onClick={this.deleteEntry}
           >
             DELETE
           </span>

@@ -45,7 +45,7 @@ def get_api_info():
 def test_create(url, api_key, num_entries):
     for i in range(num_entries):
         greeting = random.choice(greetings)
-        payload = {'entry': f'{greeting} World!'}
+        payload = {'entry': json.dumps([f'{greeting} World!'])}
         headers = {'x-api-key': api_key}
         response = requests.post(
             url, data=json.dumps(payload), headers=headers)
@@ -92,7 +92,7 @@ def test_update(url, api_key, entry_ulid):
 
 url, api_key = get_api_info()
 #entries = test_read(url, api_key)
-test_create(url, api_key, 50)
+test_create(url, api_key, 30)
 response = test_read(url, api_key)
 print(response.headers)
 sys.exit(0)

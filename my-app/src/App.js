@@ -2,22 +2,62 @@ import "./App.css";
 import JournalEntry from "./components/JournalEntry";
 import InfiniteScroll from "react-infinite-scroll-component";
 import React from "react";
+// import JournalEntryForm from "./components/JournalEntryForm";
 
 class App extends React.Component {
   entryRef = React.createRef();
   constructor(props) {
     super(props);
-    this.state = { entries: [], exclusiveStartKey: "", showEntries: true };
+    this.state = {
+      entries: [],
+      exclusiveStartKey: "",
+      showEntries: true,
+      values: [""],
+    };
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  submitEntry = (event) => {
+  createUI() {
+    return this.state.values.map((el, i) => (
+      <div key={i}>
+        <input type="button" value="+" onClick={this.addClick.bind(this)} />
+        <textarea
+          value={el || ""}
+          className="bullet-item"
+          onChange={this.handleChange.bind(this, i)}
+        />
+        <input
+          type="button"
+          value="-"
+          onClick={this.removeClick.bind(this, i)}
+        />
+      </div>
+    ));
+  }
+
+  handleChange(i, event) {
+    let values = [...this.state.values];
+    values[i] = event.target.value;
+    this.setState({ values });
+  }
+
+  addClick() {
+    this.setState((prevState) => ({ values: [...prevState.values, ""] }));
+  }
+
+  removeClick(i) {
+    let values = [...this.state.values];
+    values.splice(i, 1);
+    this.setState({ values });
+  }
+
+  handleSubmit(event) {
     event.preventDefault();
     const entry = {
-      entry_content: this.entryRef.current.value,
+      entry_content: JSON.stringify(this.state.values),
     };
     const url = process.env.REACT_APP_URL;
     const data = { entry: entry["entry_content"] };
-    this.setState({ entries: [], exclusiveStartKey: "" });
     fetch(url, {
       method: "POST",
       headers: {
@@ -25,18 +65,23 @@ class App extends React.Component {
       },
       body: JSON.stringify(data),
     }).then((response) => {
+      this.setState({
+        entries: [],
+        exclusiveStartKey: "",
+        showEntries: true,
+        values: [""],
+      });
       this.getNewEntries();
     });
     event.currentTarget.reset();
-  };
+  }
 
   deleteEntryCleanup = () => {
     this.setState({ entries: [], exclusiveStartKey: "" });
-    this.getNewEntries(false);
+    this.getNewEntries();
   };
 
   getNewEntries = () => {
-    console.log("getting new entries!");
     var useExclusiveStartKey = true;
     const NO_ENTRIES_LEFT = "NO ENTRIES LEFT";
     var url = process.env.REACT_APP_URL + "?num_entries=10";
@@ -83,9 +128,7 @@ class App extends React.Component {
 
   showEntries = () => {
     const newState = { showEntries: true };
-    // var newState = { showEntries: true, entries: [], exclusiveStartKey: "" };
     this.setState(newState);
-    // this.getNewEntries();
   };
 
   showCreateEntry = () => {
@@ -94,16 +137,11 @@ class App extends React.Component {
   };
 
   showPage() {
-    console.log(this.state.entries.length);
-    console.log(`excl start key ${this.state.exclusiveStartKey}`);
-    console.log(
-      `has more: ${this.state.exclusiveStartKey !== "NO ENTRIES LEFT"}`
-    );
     if (this.state.showEntries) {
       return (
         <>
           <h2>
-            <span onClick={this.showEntries}>Gratitude Journal,</span>{" "}
+            <span>Gratitude Journal,</span>{" "}
             <span
               onClick={this.showCreateEntry}
               style={{ color: "red", cursor: "pointer" }}
@@ -132,25 +170,19 @@ class App extends React.Component {
     } else {
       return (
         <div>
-          <div className="box">
-            <h2>
-              <span
-                onClick={this.showEntries}
-                style={{ color: "red", cursor: "pointer" }}
-              >
-                Gratitude Journal,
-              </span>{" "}
-              <span onClick={this.showCreateEntry}>+Entry</span>
-            </h2>
-
-            <form onSubmit={this.submitEntry}>
-              <textarea
-                className="entry-text-area"
-                name="entry"
-                ref={this.entryRef}
-                placeholder="Entry"
-              />
-              <button type="submit">Submit Entry</button>
+          <h2>
+            <span
+              onClick={this.showEntries}
+              style={{ color: "red", cursor: "pointer" }}
+            >
+              Gratitude Journal,
+            </span>{" "}
+            <span>+Entry</span>
+          </h2>
+          <div>
+            <form onSubmit={this.handleSubmit}>
+              {this.createUI()}
+              <input type="submit" value="Submit" />
             </form>
           </div>
         </div>
