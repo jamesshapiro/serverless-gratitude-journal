@@ -13,6 +13,7 @@ class App extends React.Component {
       exclusiveStartKey: "",
       showEntries: true,
       values: [""],
+      keyword: "",
     };
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -91,6 +92,9 @@ class App extends React.Component {
     ) {
       return;
     }
+    if (this.state.keyword) {
+      url += `&keyword=${this.state.keyword}`;
+    }
     if (useExclusiveStartKey && this.state.exclusiveStartKey) {
       url += `&exclusive_start_key=${this.state.exclusiveStartKey}`;
     }
@@ -103,7 +107,12 @@ class App extends React.Component {
       .then((response) => response.json())
       .then((data) => {
         var oldEntries = this.state.entries;
-        var newState = { entries: [...oldEntries, ...data.Items] };
+        if (this.state.exclusiveStartKey) {
+          var newState = { entries: [...oldEntries, ...data.Items] };
+        } else {
+          var newState = { entries: [...data.Items] };
+        }
+
         if (data.LastEvaluatedKey) {
           newState["exclusiveStartKey"] = data.LastEvaluatedKey.SK1.S.slice(
             "ENTRY_ID#".length
@@ -136,6 +145,32 @@ class App extends React.Component {
     this.setState(newState);
   };
 
+  handleSearchBarChange(event) {
+    let keyword = [...this.state.keyword];
+    keyword = event.target.value;
+    this.setState({ keyword, exclusiveStartKey: "" });
+  }
+
+  handleSearch = (event) => {
+    event.preventDefault();
+    event.currentTarget.reset();
+    this.getNewEntries();
+  };
+
+  getSearchBar = () => {
+    return (
+      <span>
+        🔍
+        {/* <input type="text" onChange={this.handleSearchBarChange.bind(this)} /> */}
+        <form className="search-bar" onSubmit={this.handleSearch}>
+          <input type="text" onChange={this.handleSearchBarChange.bind(this)} />
+          {/* <input type="text" /> */}
+          <input type="submit" value="Submit" />
+        </form>
+      </span>
+    );
+  };
+
   showPage() {
     if (this.state.showEntries) {
       return (
@@ -146,8 +181,9 @@ class App extends React.Component {
               onClick={this.showCreateEntry}
               style={{ color: "red", cursor: "pointer" }}
             >
-              +Entry
+              +Entry,
             </span>
+            <span>{this.getSearchBar()}</span>
           </h2>
           <h2></h2>
           <InfiniteScroll
@@ -177,7 +213,8 @@ class App extends React.Component {
             >
               Gratitude Journal,
             </span>{" "}
-            <span>+Entry</span>
+            <span>+Entry,</span>
+            <span>{this.getSearchBar()}</span>
           </h2>
           <div>
             <form onSubmit={this.handleSubmit}>

@@ -30,6 +30,10 @@
   width: 500px;
 }
 
+.search-bar {
+  display: inline;
+}
+
 .journal-entry-content {
   font-size: 16px;
 }

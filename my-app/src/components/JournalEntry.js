@@ -24,12 +24,12 @@ class JournalEntry extends React.Component {
     this.setState(newState);
   }
 
-  listStringToUL(entry_content) {
+  listStringToUL(entry_content, ulid) {
     const as_list = JSON.parse(entry_content);
     return (
       <ul>
-        {as_list.map((key) => (
-          <li>{key}</li>
+        {as_list.map((item, idx) => (
+          <li key={`${ulid}-${idx}`}>{item}</li>
         ))}
       </ul>
     );
@@ -42,7 +42,7 @@ class JournalEntry extends React.Component {
         <div className="journal-entry">
           <div className="journal-entry-date">{legible_date}</div>
           <div className="journal-entry-content">
-            {this.listStringToUL(entry_content)}
+            {this.listStringToUL(entry_content, ulid)}
           </div>
           <span
             className="journal-entry-delete-button"

@@ -112,6 +112,8 @@ def lambda_handler(event, context):
         num_entries = int(query_string_parameters.get(
             'num_entries', DEFAULT_NUM_ENTRIES))
         keyword = query_string_parameters.get('keyword', None)
+        if keyword:
+            keyword = keyword.lower()
     response = read_entries(
         table_name, exclusive_start_key, num_entries, keyword)
     items_with_time = add_legible_time(response['Items'])
