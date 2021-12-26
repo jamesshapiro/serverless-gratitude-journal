@@ -155,12 +155,25 @@ Resources:
           AttributeType: "S"
         - AttributeName: "SK1"
           AttributeType: "S"
+        - AttributeName: "GSI1PK"
+          AttributeType: "S"
+        - AttributeName: "GSI1SK"
+          AttributeType: "S"
       BillingMode: "PAY_PER_REQUEST"
       KeySchema:
         - AttributeName: "PK1"
           KeyType: "HASH"
         - AttributeName: "SK1"
           KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: "GSI1"
+          KeySchema:
+            - AttributeName: "GSI1PK"
+              KeyType: "HASH"
+            - AttributeName: "GSI1SK"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: "ALL"
 
   ULIDLayer:
     Type: AWS::Serverless::LayerVersion

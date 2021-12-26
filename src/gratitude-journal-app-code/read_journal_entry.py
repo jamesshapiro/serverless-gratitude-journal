@@ -23,7 +23,10 @@ months = {
 }
 
 
-def read_entries(table_name, exclusive_start_key, num_items):
+def read_entries(table_name, exclusive_start_key, num_items, keyword=None):
+    pk1 = 'ENTRY'
+    if keyword:
+        pk1 = f'KEYWORD#{keyword}'
     kwargs = {
         'TableName': table_name,
         'Limit': num_items,
@@ -31,28 +34,42 @@ def read_entries(table_name, exclusive_start_key, num_items):
         'ScanIndexForward': False,
         'KeyConditionExpression': '#pk1 = :pk1',
         'ExpressionAttributeNames': {'#pk1': 'PK1'},
-        'ExpressionAttributeValues': {':pk1': {'S': 'ENTRY'}}
+        'ExpressionAttributeValues': {':pk1': {'S': pk1}}
     }
     if exclusive_start_key:
         kwargs['ExclusiveStartKey'] = {
-            'PK1': {'S': 'ENTRY'},
+            'PK1': {'S': pk1},
             'SK1': {'S': f'ENTRY_ID#{exclusive_start_key}'}
         }
     return ddb_client.query(**kwargs)
+
+
+def get_item(table_name, entry_ulid):
+    return ddb_client.get_item(
+        TableName=table_name,
+        Key={
+            'PK1': {'S': 'ENTRY'},
+            'SK1': {'S': f'ENTRY_ID#{entry_ulid}'}
+        }
+    )
 
 
 def add_legible_time(items):
     entries = []
     for item in items:
         ulid_str = item['SK1']['S'][len('ENTRY_ID#'):]
-        entry_content = item['ENTRY_CONTENT']['S']
+        if 'ENTRY_CONTENT' in item:
+            entry_content = item['ENTRY_CONTENT']['S']
+        else:
+            full_item = get_item(table_name, ulid_str)
+            entry_content = full_item['Item']['ENTRY_CONTENT']['S']
         ulid_ulid = ulid.from_str(ulid_str)
         entry_datetime = ulid_ulid.timestamp().datetime
         # TODO: load timezone from DDB
         EST = pytz.timezone('US/Eastern')
-        #PST = pytz.timezone('US/Pacific')
-        #JST = pytz.timezone('Asia/Tokyo')
-        #NZST = pytz.timezone('Pacific/Auckland')
+        # PST = pytz.timezone('US/Pacific')
+        # JST = pytz.timezone('Asia/Tokyo')
+        # NZST = pytz.timezone('Pacific/Auckland')
         # TODO: load hour display preference from DDB
         entry_datetime_local = entry_datetime.astimezone(EST)
         # TODO: load day-month display preference from DDB
@@ -87,13 +104,16 @@ def lambda_handler(event, context):
     response_code = 200
     exclusive_start_key = None
     num_entries = DEFAULT_NUM_ENTRIES
+    keyword = None
     if 'queryStringParameters' in event and event['queryStringParameters']:
         query_string_parameters = event['queryStringParameters']
         exclusive_start_key = query_string_parameters.get(
             'exclusive_start_key', None)
         num_entries = int(query_string_parameters.get(
             'num_entries', DEFAULT_NUM_ENTRIES))
-    response = read_entries(table_name, exclusive_start_key, num_entries)
+        keyword = query_string_parameters.get('keyword', None)
+    response = read_entries(
+        table_name, exclusive_start_key, num_entries, keyword)
     items_with_time = add_legible_time(response['Items'])
     response['Items'] = items_with_time
     result = {

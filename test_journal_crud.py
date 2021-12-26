@@ -3,6 +3,7 @@ import requests
 import random
 import sys
 import json
+import warem_ipsum
 
 greetings = [
     'Shalom',
@@ -44,8 +45,8 @@ def get_api_info():
 
 def test_create(url, api_key, num_entries):
     for i in range(num_entries):
-        greeting = random.choice(greetings)
-        payload = {'entry': json.dumps([f'{greeting} World!'])}
+        bullets = [warem_ipsum.get_paragraph()]
+        payload = {'entry': json.dumps(bullets)}
         headers = {'x-api-key': api_key}
         response = requests.post(
             url, data=json.dumps(payload), headers=headers)
@@ -53,17 +54,18 @@ def test_create(url, api_key, num_entries):
         print(json_response['message'])
 
 
-def test_read(url, api_key, exclusive_start_key=None, num_entries=DEFAULT_NUM_ENTRIES):
+def test_read(url, api_key, exclusive_start_key=None, num_entries=DEFAULT_NUM_ENTRIES,keyword=None):
     headers = {'x-api-key': api_key}
     url = url + f'?num_entries={num_entries}'
     if exclusive_start_key:
         url += f'&exclusive_start_key={exclusive_start_key}'
+    if keyword:
+        url += f'&keyword={keyword}'
     response = requests.get(url, headers=headers)
     response_text = json.loads(response.text)
-    print(response_text.keys())
-    print(response_text['Count'])
     for item in response_text['Items']:
-        print(item)
+        print(item['ulid'])
+    print(len(response_text['Items']))
     if 'LastEvaluatedKey' in response_text:
         print(response_text['LastEvaluatedKey'])
     return response
@@ -92,9 +94,8 @@ def test_update(url, api_key, entry_ulid):
 
 url, api_key = get_api_info()
 #entries = test_read(url, api_key)
-test_create(url, api_key, 30)
-response = test_read(url, api_key)
-print(response.headers)
+#test_create(url, api_key, 100)
+response = test_read(url, api_key,keyword='evenly')
 sys.exit(0)
 last_evaluated_key = response['LastEvaluatedKey']['SK1']['S']
 print(f'{last_evaluated_key=}')
