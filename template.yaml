@@ -1,9 +1,9 @@
 #sam build && sam deploy --parameter-overrides $(cat .sam-params)
 
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Sample SAM Template for gratitude journal app
+  Sample SAM Template for journal app
 
 Globals:
   Function:
@@ -27,7 +27,7 @@ Resources:
   CreateJournalEntryFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/gratitude-journal-app-code/
+      CodeUri: src/journal-app-code/
       Handler: create_journal_entry.lambda_handler
       Runtime: python3.9
       Policies:
@@ -37,7 +37,7 @@ Resources:
         - !Ref ULIDLayer
       Environment:
         Variables:
-          GRATITUDE_JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
+          JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
       Events:
         JournalEntryAPIEvent:
           Type: Api
@@ -62,23 +62,23 @@ Resources:
 
   JournalEntryUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
-    DependsOn: "JournalEntryApiProdStage"
+    DependsOn: 'JournalEntryApiProdStage'
     Properties:
       ApiStages:
         - ApiId: !Ref JournalEntryApi
-          Stage: "Prod"
+          Stage: 'Prod'
 
   JournalEntryUsagePlanKeyAssocation:
     Type: AWS::ApiGateway::UsagePlanKey
     Properties:
       KeyId: !Ref JournalEntryApiKey
-      KeyType: "API_KEY"
+      KeyType: 'API_KEY'
       UsagePlanId: !Ref JournalEntryUsagePlan
 
   ReadJournalEntryFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/gratitude-journal-app-code/
+      CodeUri: src/journal-app-code/
       Handler: read_journal_entry.lambda_handler
       Runtime: python3.9
       Policies:
@@ -88,7 +88,7 @@ Resources:
         - !Ref ULIDLayer
       Environment:
         Variables:
-          GRATITUDE_JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
+          JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
       Events:
         JournalEntryAPIEvent:
           Type: Api
@@ -102,7 +102,7 @@ Resources:
   DeleteJournalEntryFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/gratitude-journal-app-code/
+      CodeUri: src/journal-app-code/
       Handler: delete_journal_entry.lambda_handler
       Runtime: python3.9
       Policies:
@@ -112,7 +112,7 @@ Resources:
         - !Ref ULIDLayer
       Environment:
         Variables:
-          GRATITUDE_JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
+          JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
       Events:
         JournalEntryAPIEvent:
           Type: Api
@@ -126,7 +126,7 @@ Resources:
   UpdateJournalEntryFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/gratitude-journal-app-code/
+      CodeUri: src/journal-app-code/
       Handler: update_journal_entry.lambda_handler
       Runtime: python3.9
       Policies:
@@ -136,7 +136,7 @@ Resources:
         - !Ref ULIDLayer
       Environment:
         Variables:
-          GRATITUDE_JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
+          JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
       Events:
         JournalEntryAPIEvent:
           Type: Api
@@ -151,29 +151,29 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: "PK1"
-          AttributeType: "S"
-        - AttributeName: "SK1"
-          AttributeType: "S"
-        - AttributeName: "GSI1PK"
-          AttributeType: "S"
-        - AttributeName: "GSI1SK"
-          AttributeType: "S"
-      BillingMode: "PAY_PER_REQUEST"
+        - AttributeName: 'PK1'
+          AttributeType: 'S'
+        - AttributeName: 'SK1'
+          AttributeType: 'S'
+        - AttributeName: 'GSI1PK'
+          AttributeType: 'S'
+        - AttributeName: 'GSI1SK'
+          AttributeType: 'S'
+      BillingMode: 'PAY_PER_REQUEST'
       KeySchema:
-        - AttributeName: "PK1"
-          KeyType: "HASH"
-        - AttributeName: "SK1"
-          KeyType: "RANGE"
+        - AttributeName: 'PK1'
+          KeyType: 'HASH'
+        - AttributeName: 'SK1'
+          KeyType: 'RANGE'
       GlobalSecondaryIndexes:
-        - IndexName: "GSI1"
+        - IndexName: 'GSI1'
           KeySchema:
-            - AttributeName: "GSI1PK"
-              KeyType: "HASH"
-            - AttributeName: "GSI1SK"
-              KeyType: "RANGE"
+            - AttributeName: 'GSI1PK'
+              KeyType: 'HASH'
+            - AttributeName: 'GSI1SK'
+              KeyType: 'RANGE'
           Projection:
-            ProjectionType: "ALL"
+            ProjectionType: 'ALL'
 
   ULIDLayer:
     Type: AWS::Serverless::LayerVersion
@@ -188,47 +188,44 @@ Resources:
       LicenseInfo: MIT
       RetentionPolicy: Retain
 
-  GratitudeJournalWebsiteS3Bucket:
+  JournalWebsiteS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
-              SSEAlgorithm: "AES256"
+              SSEAlgorithm: 'AES256'
 
-  GratitudeJournalWebsiteBucketPolicy:
+  JournalWebsiteBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref GratitudeJournalWebsiteS3Bucket
+      Bucket: !Ref JournalWebsiteS3Bucket
       PolicyDocument:
         Statement:
           - Action: s3:GetObject
             Effect: Allow
             Principal:
-              CanonicalUser: !GetAtt GratitudeJournalCloudFrontOAI.S3CanonicalUserId
+              CanonicalUser: !GetAtt JournalCloudFrontOAI.S3CanonicalUserId
             Resource:
-              !Join [
-                "",
-                ["arn:aws:s3:::", !Ref "GratitudeJournalWebsiteS3Bucket", /*],
-              ]
+              !Join ['', ['arn:aws:s3:::', !Ref 'JournalWebsiteS3Bucket', /*]]
 
-  GratitudeJournalCloudFrontDistribution:
+  JournalCloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Origins:
-          - DomainName: !GetAtt GratitudeJournalWebsiteS3Bucket.DomainName
+          - DomainName: !GetAtt JournalWebsiteS3Bucket.DomainName
             Id: myS3Origin
             S3OriginConfig:
               OriginAccessIdentity:
                 !Join [
-                  "",
+                  '',
                   [
-                    "origin-access-identity/cloudfront/",
-                    !Ref GratitudeJournalCloudFrontOAI,
+                    'origin-access-identity/cloudfront/',
+                    !Ref JournalCloudFrontOAI,
                   ],
                 ]
-        Enabled: "true"
+        Enabled: 'true'
         Comment: !Ref SubdomainParam
         DefaultRootObject: index.html
         Aliases:
@@ -244,7 +241,7 @@ Resources:
             - PUT
           TargetOriginId: myS3Origin
           ForwardedValues:
-            QueryString: "false"
+            QueryString: 'false'
             Cookies:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
@@ -253,20 +250,20 @@ Resources:
               IncludeBody: true
               LambdaFunctionARN: !Ref DistributionAuthorizer.Version
         ViewerCertificate:
-          AcmCertificateArn: !Ref GratitudeJournalACMCertificate
+          AcmCertificateArn: !Ref JournalACMCertificate
           #CloudFrontDefaultCertificate: Boolean
           #IamCertificateId: String
-          MinimumProtocolVersion: "TLSv1"
-          SslSupportMethod: "sni-only"
+          MinimumProtocolVersion: 'TLSv1'
+          SslSupportMethod: 'sni-only'
 
-  GratitudeJournalCloudFrontOAI:
+  JournalCloudFrontOAI:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Ref SubdomainParam
 
-  GratitudeJournalACMCertificate:
-    Type: "AWS::CertificateManager::Certificate"
+  JournalACMCertificate:
+    Type: 'AWS::CertificateManager::Certificate'
     Properties:
       DomainName: !Ref SubdomainParam
       DomainValidationOptions:
@@ -274,8 +271,8 @@ Resources:
           HostedZoneId: !Ref HostedZoneIDParam
       ValidationMethod: DNS
 
-  GratitudeRoute53RecordSet:
-    Type: "AWS::Route53::RecordSetGroup"
+  Route53RecordSet:
+    Type: 'AWS::Route53::RecordSetGroup'
     Properties:
       HostedZoneId: !Ref HostedZoneIDParam
       RecordSets:
@@ -283,8 +280,8 @@ Resources:
           Type: A
           AliasTarget:
             # Note: This HostedZoneID is always used for every CF distribution so it can be hard-coded in
-            HostedZoneId: "Z2FDTNDATAQYW2"
-            DNSName: !GetAtt GratitudeJournalCloudFrontDistribution.DomainName
+            HostedZoneId: 'Z2FDTNDATAQYW2'
+            DNSName: !GetAtt JournalCloudFrontDistribution.DomainName
 
   DistributionAuthorizer:
     Type: AWS::Serverless::Function
@@ -300,7 +297,7 @@ Resources:
   DistributionAuthorizerRole:
     Type: AWS::IAM::Role
     Properties:
-      Path: "/"
+      Path: '/'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       AssumeRolePolicyDocument:
@@ -316,7 +313,7 @@ Resources:
       Policies:
         - PolicyName: root
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action: iam:GetRole*
@@ -330,7 +327,7 @@ Resources:
   ValueFuncExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      Path: "/"
+      Path: '/'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       AssumeRolePolicyDocument:
@@ -345,7 +342,7 @@ Resources:
       Policies:
         - PolicyName: root
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action: apigateway:GET
@@ -388,7 +385,7 @@ Resources:
       Handler: index.lambda_handler
       Runtime: python3.9
       Timeout: 30
-      Role: !Sub "arn:aws:iam::${AWS::AccountId}:role/${ValueFuncExecutionRole}"
+      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${ValueFuncExecutionRole}'
   GetApiKeyValue:
     Type: Custom::LambdaCallout
     Properties:
@@ -400,11 +397,11 @@ Outputs:
     Value: !Ref JournalEntriesDDBTable
     Description: DDB Table
   WebsiteS3BucketName:
-    Value: !Ref GratitudeJournalWebsiteS3Bucket
+    Value: !Ref JournalWebsiteS3Bucket
     Description: Website S3 Bucket Name
   JournalEntryApiEndpoint:
-    Description: "API Gateway endpoint URL for Prod stage for Gratitude Journal CRUD operations"
-    Value: !Sub "https://${JournalEntryApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/entries/"
+    Description: 'API Gateway endpoint URL for Prod stage for Journal CRUD operations'
+    Value: !Sub 'https://${JournalEntryApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/entries/'
   APIKeyValue:
-    Description: "The actual API Key Value"
+    Description: 'The actual API Key Value'
     Value: !GetAtt GetApiKeyValue.Data

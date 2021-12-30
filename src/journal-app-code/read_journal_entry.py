@@ -5,7 +5,7 @@ import pytz
 import json
 
 ddb_client = boto3.client('dynamodb')
-table_name = os.environ['GRATITUDE_JOURNAL_DDB_TABLE']
+table_name = os.environ['JOURNAL_DDB_TABLE']
 DEFAULT_NUM_ENTRIES = 12
 months = {
     1: 'January',

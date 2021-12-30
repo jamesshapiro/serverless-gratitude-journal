@@ -3,7 +3,7 @@ import os
 import json
 
 ddb_client = boto3.client('dynamodb')
-table_name = os.environ['GRATITUDE_JOURNAL_DDB_TABLE']
+table_name = os.environ['JOURNAL_DDB_TABLE']
 
 
 def delete_item(table_name, entry_ulid, keyword=None):

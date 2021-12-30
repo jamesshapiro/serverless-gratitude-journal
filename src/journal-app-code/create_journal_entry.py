@@ -4,7 +4,7 @@ import os
 import ulid
 import re
 
-table_name = os.environ['GRATITUDE_JOURNAL_DDB_TABLE']
+table_name = os.environ['JOURNAL_DDB_TABLE']
 
 
 def bad_request(message):
