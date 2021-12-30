@@ -176,7 +176,7 @@ class App extends React.Component {
       return (
         <>
           <h2>
-            <span>Gratitude Journal,</span>{" "}
+            <span>Journal,</span>{" "}
             <span
               onClick={this.showCreateEntry}
               style={{ color: "red", cursor: "pointer" }}
@@ -185,7 +185,6 @@ class App extends React.Component {
             </span>
             <span>{this.getSearchBar()}</span>
           </h2>
-          <h2></h2>
           <InfiniteScroll
             dataLength={this.state.entries.length}
             next={this.getNewEntries}
@@ -209,10 +208,10 @@ class App extends React.Component {
           <h2>
             <span
               onClick={this.showEntries}
-              style={{ color: "red", cursor: "pointer" }}
+              style={{ color: 'red', cursor: 'pointer' }}
             >
-              Gratitude Journal,
-            </span>{" "}
+              Journal,
+            </span>{' '}
             <span>+Entry,</span>
             <span>{this.getSearchBar()}</span>
           </h2>
@@ -223,7 +222,7 @@ class App extends React.Component {
             </form>
           </div>
         </div>
-      );
+      )
     }
   }
 

@@ -24,15 +24,24 @@ class JournalEntry extends React.Component {
     this.setState(newState);
   }
 
+  getTextOrImage(item) {
+    if (item.startsWith('#IMAGE#')) {
+      const imageLocation=item.slice(7)
+      return <img className="journal-image" src={imageLocation} alt={imageLocation} />
+    } else {
+      return item
+    }
+  }
+
   listStringToUL(entry_content, ulid) {
     const as_list = JSON.parse(entry_content);
     return (
       <ul>
         {as_list.map((item, idx) => (
-          <li key={`${ulid}-${idx}`}>{item}</li>
+          <li key={`${ulid}-${idx}`}>{this.getTextOrImage(item)}</li>
         ))}
       </ul>
-    );
+    )
   }
 
   render() {
