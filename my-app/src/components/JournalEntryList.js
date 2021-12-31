@@ -15,7 +15,7 @@ class JournalEntryList extends React.Component {
     return (
       <>
         <div className="box">
-          <h2>Gratitude Journal</h2>
+          <h2>Journal</h2>
           <ul className="entries">
             {Object.keys(this.props.entries).map((key) => (
               <JournalEntry

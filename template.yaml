@@ -33,11 +33,14 @@ Resources:
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Ref JournalEntriesDDBTable
+        - S3WritePolicy:
+            BucketName: !Ref JournalWebsiteS3Bucket
       Layers:
         - !Ref ULIDLayer
       Environment:
         Variables:
           JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
+          JOURNAL_S3_BUCKET: !Ref JournalWebsiteS3Bucket
       Events:
         JournalEntryAPIEvent:
           Type: Api
@@ -191,6 +194,24 @@ Resources:
   JournalWebsiteS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+              - 'x-amz-*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - DELETE
+              - POST
+            AllowedOrigins:
+              - '*'
+            ExposedHeaders:
+              - Connection
+              - Server
+              - Date
+            Id: myCORSRuleId1
+            MaxAge: 3600
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:

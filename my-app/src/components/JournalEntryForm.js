@@ -37,7 +37,7 @@ class JournalEntryForm extends React.Component {
               onClick={this.props.showEntries}
               style={{ color: "red", cursor: "pointer" }}
             >
-              Gratitude Journal,
+              Journal,
             </span>{" "}
             <span>+Entry</span>
           </h2>

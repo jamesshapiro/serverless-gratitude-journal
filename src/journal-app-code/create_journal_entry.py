@@ -5,7 +5,7 @@ import ulid
 import re
 
 table_name = os.environ['JOURNAL_DDB_TABLE']
-
+s3_bucket = os.environ['JOURNAL_S3_BUCKET']
 
 def bad_request(message):
     response_code = 400
@@ -53,15 +53,8 @@ def index_words(entry_content, dynamodb_client, entry_ulid, table_name):
         )
     return
 
-
-def lambda_handler(event, context):
-    dynamodb_client = boto3.client('dynamodb')
-    response_code = 200
-    print("request: " + json.dumps(event))
-    body = json.loads(event['body'])
-    entry_content = body['entry']
-    entry_ulid = str(ulid.new())
-
+def create_text_post(entry, entry_ulid, dynamodb_client):
+    entry_content = entry
     response = dynamodb_client.put_item(
         TableName=table_name,
         Item={
@@ -71,12 +64,39 @@ def lambda_handler(event, context):
         }
     )
     index_words(entry_content, dynamodb_client, entry_ulid, table_name)
-
     response_body = {
-        'message': f'Entry received! {entry_ulid}',
-        'input': event
+        'message': f'Entry received! {entry_ulid}'
     }
+    return response_body
 
+def create_image_post(image_title, entry_ulid, dynamodb_client):
+    s3_client = boto3.client('s3')
+    bucket = s3_bucket
+    key = f'images/{entry_ulid}/{image_title}'
+    response = s3_client.generate_presigned_url(
+        ClientMethod='put_object',
+        Params= {
+            'Bucket': bucket,
+            'Key': key
+        },
+        ExpiresIn=3600
+    )
+    #response = s3_client.generate_presigned_post(Bucket=bucket, Key=key, Fields=None, Conditions=None, ExpiresIn=3600)
+    return response
+
+def lambda_handler(event, context):
+    dynamodb_client = boto3.client('dynamodb')
+    response_code = 200
+    print("request: " + json.dumps(event))
+    body = json.loads(event['body'])
+    entry_ulid = str(ulid.new())
+    if 'entry' in body:
+        response_body = create_text_post(body['entry'], entry_ulid, dynamodb_client)
+    elif 'image_title' in body:
+        image_title = body['image_title']
+        image_title = image_title.strip('"')
+        s3_response = create_image_post(image_title, entry_ulid, dynamodb_client)
+        response_body = s3_response
     response = {
         'statusCode': response_code,
         'headers': {
