@@ -24,12 +24,21 @@ class JournalEntry extends React.Component {
     this.setState(newState);
   }
 
-  getTextOrImage(item) {
+  getTextOrImage(item, ulid, idx) {
     if (item.startsWith('#IMAGE#')) {
       const imageLocation=item.slice(7)
-      return <img className="journal-image" src={imageLocation} alt={imageLocation} />
+      return (
+        <>
+          <img
+            className="journal-image"
+            src={imageLocation}
+            alt={imageLocation}
+          />
+          {/* <img className="journal-image" src="koala.jpg" alt="koala.jpg" /> */}
+        </>
+      )
     } else {
-      return item
+      return <li key={`${ulid}-${idx}`}>{item}</li>
     }
   }
 
@@ -38,7 +47,7 @@ class JournalEntry extends React.Component {
     return (
       <ul>
         {as_list.map((item, idx) => (
-          <li key={`${ulid}-${idx}`}>{this.getTextOrImage(item)}</li>
+          <>{this.getTextOrImage(item, ulid, idx)}</>
         ))}
       </ul>
     )

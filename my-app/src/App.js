@@ -1,8 +1,11 @@
+//  aws s3 cp --recursive . s3://gratitude-09-journalwebsites3bucket-7zl5r9dvx6jp && aws cloudfront create-invalidation --distribution-id EB1U59377H4PA --paths "/*"
+
 import "./App.css";
 import JournalEntry from "./components/JournalEntry";
 import InfiniteScroll from "react-infinite-scroll-component";
 import React from "react";
 import { ImagePicker } from 'react-file-picker'
+import S3 from 'aws-sdk/clients/s3'
 // import JournalEntryForm from "./components/JournalEntryForm";
 
 class App extends React.Component {
@@ -198,6 +201,7 @@ class App extends React.Component {
   }
 
   uploadImage = (base64) => {
+    var b64_cleaned = base64.replace(/^data:image\/\w+;base64,/, '')
     console.log(`submitting 1... ${this.state.imageMetadata}`)
     if (!this.state.imageMetadata) {
       console.log('error! no image title!')
@@ -207,7 +211,10 @@ class App extends React.Component {
       image_title: JSON.stringify(this.state.imageMetadata),
     }
     const url = process.env.REACT_APP_URL
-    const data = { image_title: entry['image_title'] }
+    const data = {
+      image_title: entry['image_title'],
+      image_base64_content: b64_cleaned,
+    }
     fetch(url, {
       method: 'POST',
       headers: {
@@ -217,29 +224,15 @@ class App extends React.Component {
     }).then((response) => {
       return response.json()
     }).then((body) => {
-      console.log(body)
-      const presigned_url = body
-      const myHeaders = new Headers()
-      // myHeaders.append('Content-Type', 'text/plain')
-      myHeaders.append(
-        'x-amz-server-side-encryption-context',
-        'arn:aws:s3:::gratitude-09-journalwebsites3bucket-7zl5r9dvx6jp'
-      )
-      fetch(presigned_url, {
-        method: 'PUT',
-        headers: myHeaders,
-        body: data,
+      console.log(body)      
+    }).then((response) => {
+      this.setState({
+        entries: [],
+        exclusiveStartKey: '',
+        showEntries: true,
+        values: [''],
       })
-      // this.setState({
-      //   entries: [],
-      //   exclusiveStartKey: '',
-      //   showEntries: true,
-      //   values: [''],
-      // })
-      // this.getNewEntries()      
-    }).then(response => {
-      console.log(response)
-      console.log(response.httpResponse)
+      this.getNewEntries()
     })
   }
 
