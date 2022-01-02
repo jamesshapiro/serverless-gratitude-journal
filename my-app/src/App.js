@@ -1,4 +1,4 @@
-//  aws s3 cp --recursive . s3://gratitude-09-journalwebsites3bucket-7zl5r9dvx6jp && aws cloudfront create-invalidation --distribution-id EB1U59377H4PA --paths "/*"
+//  aws s3 cp --recursive build s3://gratitude-09-journalwebsites3bucket-7zl5r9dvx6jp && aws cloudfront create-invalidation --distribution-id EB1U59377H4PA --paths "/*"
 
 import "./App.css";
 import JournalEntry from "./components/JournalEntry";
@@ -201,19 +201,18 @@ class App extends React.Component {
   }
 
   uploadImage = (base64) => {
-    var b64_cleaned = base64.replace(/^data:image\/\w+;base64,/, '')
     console.log(`submitting 1... ${this.state.imageMetadata}`)
-    if (!this.state.imageMetadata) {
-      console.log('error! no image title!')
-      return
+    var image_title = "image"
+    if (this.state.imageMetadata) {
+      image_title = this.state.imageMetadata
     }
     const entry = {
-      image_title: JSON.stringify(this.state.imageMetadata),
+      image_title: image_title
     }
     const url = process.env.REACT_APP_URL
     const data = {
       image_title: entry['image_title'],
-      image_base64_content: b64_cleaned,
+      image_base64_content: base64,
     }
     fetch(url, {
       method: 'POST',

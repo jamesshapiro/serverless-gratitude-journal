@@ -46,7 +46,8 @@ table_name = ddb_output['OutputValue']
 salt = get_salt()
 m = hashlib.sha256()
 m.update(bytes(salt, 'utf-8'))
-username = input('enter a username: ')
+# make username case insensitive
+username = input('enter a username: ').lower()
 password = input('enter a password [Default generates a strong pw]: ')
 if password == '':
     password = default_password

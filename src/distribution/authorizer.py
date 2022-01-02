@@ -43,7 +43,8 @@ def lambda_handler(event, context):
         decoded = base64.b64decode(auth_token)
         str_decoded = decoded.decode("utf-8")
         username_and_password = str_decoded.split(':', 1)
-        username = username_and_password[0]
+        #make username case insensitive
+        username = username_and_password[0].lower()
         password = username_and_password[1]
         response = ddb_client.get_item(
             TableName=TABLE_NAME,
