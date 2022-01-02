@@ -24,7 +24,7 @@ class JournalEntry extends React.Component {
     this.setState(newState);
   }
 
-  getTextOrImage(item, ulid, idx) {
+  getTextOrImage(item, ulid, idx, item_count) {
     if (item.startsWith('#IMAGE#')) {
       const imageLocation=item.slice(7)
       return (
@@ -37,19 +37,30 @@ class JournalEntry extends React.Component {
           {/* <img className="journal-image" src="koala.jpg" alt="koala.jpg" /> */}
         </>
       )
-    } else {
+    } else if (item_count > 1) {
       return <li key={`${ulid}-${idx}`}>{item}</li>
+    } else {
+      return <>{item}</>
     }
   }
 
   listStringToUL(entry_content, ulid) {
     const as_list = JSON.parse(entry_content);
+    if (as_list.length > 1) {
+      return (
+        <ul>
+          {as_list.map((item, idx) => (
+            <>{this.getTextOrImage(item, ulid, idx, as_list.length)}</>
+          ))}
+        </ul>
+      )
+    }
     return (
-      <ul>
+      <>
         {as_list.map((item, idx) => (
-          <>{this.getTextOrImage(item, ulid, idx)}</>
+          <>{this.getTextOrImage(item, ulid, idx, as_list.length)}</>
         ))}
-      </ul>
+      </>
     )
   }
 
