@@ -18,36 +18,57 @@ class App extends React.Component {
       showEntries: true,
       values: [''],
       keyword: '',
-      imageMetadata: ''
+      imageMetadata: '',
+      showTextPost: true
     }
     this.handleSubmit = this.handleSubmit.bind(this)
   }
 
   createUI() {
-    return this.state.values.map((el, i) => (
-      <div key={i}>
-        <input type="button" value="+" onClick={this.addClick.bind(this)} />
-        <textarea
-          value={el || ''}
-          className="bullet-item"
-          onChange={this.handleChange.bind(this, i)}
-        />
-        <input
-          type="button"
-          value="-"
-          onClick={this.removeClick.bind(this, i)}
-        />
-      </div>
-    ))
+    return (
+      <table>
+        {this.state.values.map((el, i) => (
+          <tr key={i}>
+            <td className="td-button">
+              <div
+                type="button"
+                className="bullet-button"
+                value="+"
+                onClick={this.addClick.bind(this)}
+              >
+                +
+              </div>
+            </td>
+            <td className="td-textarea">
+              <textarea
+                value={el || ''}
+                className="bullet-textarea"
+                onChange={this.handleChange.bind(this, i)}
+              />
+            </td>
+            <td className="td-button">
+              <div
+                type="button"
+                className="bullet-button"
+                value="-"
+                onClick={this.removeClick.bind(this, i)}
+              >
+                -
+              </div>
+            </td>
+          </tr>
+        ))}
+      </table>
+    )
   }
 
   createImageMetadata() {
     var i = 'image-metadata'
     return (
       <div key={i}>
-        <input
+        Optional Caption: <input
           type="text"
-          className="image-title"
+          className="image-caption"
           onChange={this.handleImageMetadataChange.bind(this, i)}
         />
       </div>
@@ -194,7 +215,7 @@ class App extends React.Component {
         <form className="search-bar" onSubmit={this.handleSearch}>
           <input type="text" onChange={this.handleSearchBarChange.bind(this)} />
           {/* <input type="text" /> */}
-          <input type="submit" value="Submit" />
+          <input type="submit" value="Search" />
         </form>
       </span>
     )
@@ -233,6 +254,55 @@ class App extends React.Component {
       })
       this.getNewEntries()
     })
+  }
+
+  toggleEntryType = (event) => {
+    const newState = !this.state.showTextPost
+    this.setState({ showTextPost: newState})
+  }
+
+  getTextPost() {
+    return (
+      <div>
+        <h3 className="toggle-entry-type-header">
+          Upload text (click <span className="toggle-entry-type-link" onClick={this.toggleEntryType}>here</span>{' '}
+          for image uploads)
+        </h3>
+        <form onSubmit={this.handleSubmit}>
+          {this.createUI()}
+          <input type="submit" value="Submit" />
+        </form>
+      </div>
+    )
+  }
+
+  getImagePost() {
+    return (
+      <div>
+        <h3 onClick={this.toggleEntryType} className="toggle-entry-type-header">
+          Upload text (click{' '}
+          <span
+            className="toggle-entry-type-link"
+            onClick={this.toggleEntryType}
+          >
+            here
+          </span>{' '}
+          for text uploads)
+        </h3>
+        <ImagePicker
+          extensions={['jpg', 'jpeg', 'png']}
+          dims={{
+            minWidth: 1,
+            minHeight: 1,
+          }}
+          onChange={(base64) => this.uploadImage(base64)}
+          onError={(errMsg) => console.log(`error: ${errMsg}`)}
+        >
+          <button>Click to upload image</button>
+        </ImagePicker>
+        {this.createImageMetadata()}
+      </div>
+    )
   }
 
   showPage() {
@@ -279,24 +349,8 @@ class App extends React.Component {
             <span>+Entry,</span>
             <span>{this.getSearchBar()}</span>
           </h2>
-          <div>
-            <form onSubmit={this.handleSubmit}>
-              {this.createUI()}
-              <input type="submit" value="Submit" />
-            </form>
-            <ImagePicker
-              extensions={['jpg', 'jpeg', 'png']}
-              dims={{
-                minWidth: 1,
-                minHeight: 1,
-              }}
-              onChange={(base64) => this.uploadImage(base64)}
-              onError={(errMsg) => console.log(`error: ${errMsg}`)}
-            >
-              <button>Click to upload image</button>
-            </ImagePicker>
-            {this.createImageMetadata()}
-          </div>
+          {this.state.showTextPost && this.getTextPost()}
+          {!this.state.showTextPost && this.getImagePost()}
         </div>
       )
     }

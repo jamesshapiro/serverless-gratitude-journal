@@ -79,9 +79,20 @@ class JournalEntry extends React.Component {
           >
             DELETE
           </span>
+          {/* <span
+            className="journal-entry-spaces"
+          >
+            S
+          </span>
+          <span
+            className="journal-entry-edit-button"
+            onClick={this.editEntry}
+          >
+            EDIT
+          </span> */}
         </div>
       </>
-    );
+    )
   }
 }
 

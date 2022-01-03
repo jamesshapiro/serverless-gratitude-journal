@@ -31,8 +31,33 @@
   font-size: 12px;
 }
 
-.bullet-item {
-  width: 500px;
+.bullet-textarea {
+  width: 400px;
+  height: 40px;
+  /* padding: 2px; */
+  vertical-align: bottom;
+}
+
+.bullet-button {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  background-color: lightgrey;
+  height: 40px;
+  width: 40px;
+  /* display: table; */
+  font-size: 28px;
+  text-align: center;
+}
+
+.td-button {
+  background-color: white;
+}
+
+.td-textarea {
+  background-color: white;
+  width: 400px;
+  /* margin: 0 auto; */
 }
 
 .search-bar {
@@ -52,8 +77,31 @@
 .journal-entry-delete-button {
   color: red;
   cursor: pointer;
-  font-size: 5px;
+  font-size: 0.5rem;
   font-weight: 900;
+}
+
+.journal-entry-edit-button {
+  color: blue;
+  cursor: pointer;
+  font-size: 0.5rem;
+  font-weight: 900;
+}
+
+.journal-entry-spaces {
+  color: white;
+  font-size: 0.5rem;
+  font-weight: 900;
+  opacity: 0;
+  cursor: default;
+}
+
+.toggle-entry-type-header {
+}
+
+.toggle-entry-type-link {
+  cursor: pointer;
+  color: blue;
 }
 
 .App-link {
