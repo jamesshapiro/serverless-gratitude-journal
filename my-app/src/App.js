@@ -5,8 +5,7 @@ import JournalEntry from "./components/JournalEntry";
 import InfiniteScroll from "react-infinite-scroll-component";
 import React from "react";
 import { ImagePicker } from 'react-file-picker'
-import S3 from 'aws-sdk/clients/s3'
-// import JournalEntryForm from "./components/JournalEntryForm";
+import { FaCloudUploadAlt } from 'react-icons/fa'
 
 class App extends React.Component {
   entryRef = React.createRef()
@@ -18,7 +17,7 @@ class App extends React.Component {
       showEntries: true,
       values: [''],
       keyword: '',
-      imageMetadata: '',
+      imageCaption: '',
       showTextPost: true
     }
     this.handleSubmit = this.handleSubmit.bind(this)
@@ -62,22 +61,23 @@ class App extends React.Component {
     )
   }
 
-  createImageMetadata() {
+  createImageCaption() {
     var i = 'image-metadata'
     return (
       <div key={i}>
-        Optional Caption: <input
+        Caption (Optional):{' '}
+        <input
           type="text"
           className="image-caption"
-          onChange={this.handleImageMetadataChange.bind(this, i)}
+          onChange={this.handleImageCaptionChange.bind(this, i)}
         />
       </div>
     )
   }
 
-  handleImageMetadataChange(i, event) {
-    const newMetadata = event.target.value
-    this.setState({ imageMetadata: newMetadata })
+  handleImageCaptionChange(i, event) {
+    const newCaption = event.target.value
+    this.setState({ imageCaption: newCaption })
   }
 
   handleChange(i, event) {
@@ -222,17 +222,17 @@ class App extends React.Component {
   }
 
   uploadImage = (base64) => {
-    console.log(`submitting 1... ${this.state.imageMetadata}`)
-    var image_title = "image"
-    if (this.state.imageMetadata) {
-      image_title = this.state.imageMetadata
+    console.log(`submitting 1... ${this.state.imageCaption}`)
+    var image_caption = "image"
+    if (this.state.imageCaption) {
+      image_caption = this.state.imageCaption
     }
     const entry = {
-      image_title: image_title
+      image_caption: image_caption
     }
     const url = process.env.REACT_APP_URL
     const data = {
-      image_title: entry['image_title'],
+      image_caption: entry['image_caption'],
       image_base64_content: base64,
     }
     fetch(url, {
@@ -265,7 +265,7 @@ class App extends React.Component {
     return (
       <div>
         <h3 className="toggle-entry-type-header">
-          Upload text (click <span className="toggle-entry-type-link" onClick={this.toggleEntryType}>here</span>{' '}
+          (Click <span className="toggle-entry-type-link" onClick={this.toggleEntryType}>here</span>{' '}
           for image uploads)
         </h3>
         <form onSubmit={this.handleSubmit}>
@@ -280,7 +280,7 @@ class App extends React.Component {
     return (
       <div>
         <h3 onClick={this.toggleEntryType} className="toggle-entry-type-header">
-          Upload text (click{' '}
+          (Click{' '}
           <span
             className="toggle-entry-type-link"
             onClick={this.toggleEntryType}
@@ -298,9 +298,16 @@ class App extends React.Component {
           onChange={(base64) => this.uploadImage(base64)}
           onError={(errMsg) => console.log(`error: ${errMsg}`)}
         >
-          <button>Click to upload image</button>
+          <div className="upload-outer-box">
+            <div className="upload-inner-box">
+              <div>
+                <FaCloudUploadAlt />
+              </div>
+              <div>Upload Image</div>
+            </div>
+          </div>
         </ImagePicker>
-        {this.createImageMetadata()}
+        {this.createImageCaption()}
       </div>
     )
   }

@@ -4,8 +4,6 @@ import os
 import ulid
 import re
 import base64
-# from PIL import Image, ExifTags
-# from PIL import ImageOps
 
 table_name = os.environ['JOURNAL_DDB_TABLE']
 s3_bucket = os.environ['JOURNAL_S3_BUCKET']
@@ -75,12 +73,13 @@ def create_text_post(entry, entry_ulid, dynamodb_client):
     }
     return response_body
 
-def create_image_post(image_title, entry_ulid, dynamodb_client, image_base64_content):
+def create_image_post(image_caption, entry_ulid, dynamodb_client, image_base64_content):
     s3_client = boto3.client('s3')
     bucket = s3_bucket
     print(image_base64_content[:80])
     prefix_chars = 'data:image/'
     file_extension = image_base64_content[len(prefix_chars):200].split(';')[0]
+    image_title = 'image'
     image_title = f'{image_title}.{file_extension}'
     key = f'images/{entry_ulid}/{image_title}'
     base64_with_header_stripped = image_base64_content.split('base64,',1)[1]
@@ -89,29 +88,6 @@ def create_image_post(image_title, entry_ulid, dynamodb_client, image_base64_con
     tempfile = f'/tmp/file.{file_extension}'
     with open(tempfile,'wb') as f:
         f.write(image_binary)
-    # image=Image.open(tempfile)
-    # for orientation in ExifTags.TAGS.keys():
-    #     if ExifTags.TAGS[orientation]=='Orientation':
-    #         break
-    
-    # exif = image._getexif()
-    # print(f'{exif=}')
-    # print(f'{exif[orientation]=}')
-    # image = ImageOps.exif_transpose(image)
-    
-
-    # if exif[orientation] == 3:
-    #     image=image.rotate(180, expand=True)
-    # elif exif[orientation] == 6:
-    #     image=image.rotate(270, expand=True)
-    # elif exif[orientation] == 8:
-    #     image=image.rotate(90, expand=True)
-
-    # image.save(tempfile)
-    # image.close()
-
-    # with open(tempfile,'w') as f:
-        # f.write(image_base64_content)
     response = s3_client.upload_file(tempfile, bucket, key)
     entry_content = json.dumps([f'#IMAGE#images/{entry_ulid}/{image_title}'])
     create_entry_ddb_record(dynamodb_client,entry_ulid,entry_content)
@@ -125,11 +101,11 @@ def lambda_handler(event, context):
     entry_ulid = str(ulid.new())
     if 'entry' in body:
         response_body = create_text_post(body['entry'], entry_ulid, dynamodb_client)
-    elif 'image_title' in body:
-        image_title = body['image_title']
-        image_title = image_title.strip('"')
+    elif 'image_caption' in body:
+        image_caption = body['image_caption']
+        image_caption = image_caption.strip('"')
         image_base64_content = body['image_base64_content']
-        response_body = create_image_post(image_title, entry_ulid, dynamodb_client, image_base64_content)
+        response_body = create_image_post(image_caption, entry_ulid, dynamodb_client, image_base64_content)
     response = {
         'statusCode': response_code,
         'headers': {
