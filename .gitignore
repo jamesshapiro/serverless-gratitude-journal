@@ -1,0 +1,5 @@
+.sam-params
+my-app/.env
+src/python/*
+.aws-sam/*
+samconfig.toml

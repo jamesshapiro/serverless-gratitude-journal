@@ -4,12 +4,28 @@ import json
 
 ddb_client = boto3.client('dynamodb')
 table_name = os.environ['JOURNAL_DDB_TABLE']
+s3_client = boto3.client('s3')
+
+s3_bucket = os.environ['JOURNAL_S3_BUCKET']
 
 
 def delete_item(table_name, entry_ulid, keyword=None):
     pk1 = 'ENTRY'
     if keyword:
         pk1 = f'KEYWORD#{keyword}'
+    else:
+        response = ddb_client.get_item(
+            TableName=table_name,
+            Key={
+                'PK1': {'S': pk1},
+                'SK1': {'S': f'ENTRY_ID#{entry_ulid}'}
+            }
+        )
+        entry_content = json.loads(response['Item']['ENTRY_CONTENT']['S'])[0]
+        if entry_content.startswith('#IMAGE#'):
+            image_path = entry_content[len('#IMAGE#'):]
+            s3_client.delete_object(Bucket=s3_bucket, Key=image_path)
+            print(f'{image_path=}')
     return ddb_client.delete_item(
         TableName=table_name,
         Key={

@@ -1,6 +1,6 @@
 #sam build && sam deploy --parameter-overrides $(cat .sam-params)
 
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Sample SAM Template for journal app
@@ -65,17 +65,17 @@ Resources:
 
   JournalEntryUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
-    DependsOn: 'JournalEntryApiProdStage'
+    DependsOn: "JournalEntryApiProdStage"
     Properties:
       ApiStages:
         - ApiId: !Ref JournalEntryApi
-          Stage: 'Prod'
+          Stage: "Prod"
 
   JournalEntryUsagePlanKeyAssocation:
     Type: AWS::ApiGateway::UsagePlanKey
     Properties:
       KeyId: !Ref JournalEntryApiKey
-      KeyType: 'API_KEY'
+      KeyType: "API_KEY"
       UsagePlanId: !Ref JournalEntryUsagePlan
 
   ReadJournalEntryFunction:
@@ -111,11 +111,14 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref JournalEntriesDDBTable
+        - S3CrudPolicy:
+            BucketName: !Ref JournalWebsiteS3Bucket
       Layers:
         - !Ref DependenciesLayer
       Environment:
         Variables:
           JOURNAL_DDB_TABLE: !Ref JournalEntriesDDBTable
+          JOURNAL_S3_BUCKET: !Ref JournalWebsiteS3Bucket
       Events:
         JournalEntryAPIEvent:
           Type: Api
@@ -154,29 +157,29 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: 'PK1'
-          AttributeType: 'S'
-        - AttributeName: 'SK1'
-          AttributeType: 'S'
-        - AttributeName: 'GSI1PK'
-          AttributeType: 'S'
-        - AttributeName: 'GSI1SK'
-          AttributeType: 'S'
-      BillingMode: 'PAY_PER_REQUEST'
+        - AttributeName: "PK1"
+          AttributeType: "S"
+        - AttributeName: "SK1"
+          AttributeType: "S"
+        - AttributeName: "GSI1PK"
+          AttributeType: "S"
+        - AttributeName: "GSI1SK"
+          AttributeType: "S"
+      BillingMode: "PAY_PER_REQUEST"
       KeySchema:
-        - AttributeName: 'PK1'
-          KeyType: 'HASH'
-        - AttributeName: 'SK1'
-          KeyType: 'RANGE'
+        - AttributeName: "PK1"
+          KeyType: "HASH"
+        - AttributeName: "SK1"
+          KeyType: "RANGE"
       GlobalSecondaryIndexes:
-        - IndexName: 'GSI1'
+        - IndexName: "GSI1"
           KeySchema:
-            - AttributeName: 'GSI1PK'
-              KeyType: 'HASH'
-            - AttributeName: 'GSI1SK'
-              KeyType: 'RANGE'
+            - AttributeName: "GSI1PK"
+              KeyType: "HASH"
+            - AttributeName: "GSI1SK"
+              KeyType: "RANGE"
           Projection:
-            ProjectionType: 'ALL'
+            ProjectionType: "ALL"
 
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -196,15 +199,15 @@ Resources:
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
-              - '*'
-              - 'x-amz-*'
+              - "*"
+              - "x-amz-*"
             AllowedMethods:
               - GET
               - PUT
               - DELETE
               - POST
             AllowedOrigins:
-              - '*'
+              - "*"
             ExposedHeaders:
               - Connection
               - Server
@@ -214,7 +217,7 @@ Resources:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
-              SSEAlgorithm: 'AES256'
+              SSEAlgorithm: "AES256"
 
   JournalWebsiteBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -227,7 +230,7 @@ Resources:
             Principal:
               CanonicalUser: !GetAtt JournalCloudFrontOAI.S3CanonicalUserId
             Resource:
-              !Join ['', ['arn:aws:s3:::', !Ref 'JournalWebsiteS3Bucket', /*]]
+              !Join ["", ["arn:aws:s3:::", !Ref "JournalWebsiteS3Bucket", /*]]
 
   JournalCloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -239,13 +242,13 @@ Resources:
             S3OriginConfig:
               OriginAccessIdentity:
                 !Join [
-                  '',
+                  "",
                   [
-                    'origin-access-identity/cloudfront/',
+                    "origin-access-identity/cloudfront/",
                     !Ref JournalCloudFrontOAI,
                   ],
                 ]
-        Enabled: 'true'
+        Enabled: "true"
         Comment: !Ref SubdomainParam
         DefaultRootObject: index.html
         Aliases:
@@ -261,7 +264,7 @@ Resources:
             - PUT
           TargetOriginId: myS3Origin
           ForwardedValues:
-            QueryString: 'false'
+            QueryString: "false"
             Cookies:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
@@ -273,8 +276,8 @@ Resources:
           AcmCertificateArn: !Ref JournalACMCertificate
           #CloudFrontDefaultCertificate: Boolean
           #IamCertificateId: String
-          MinimumProtocolVersion: 'TLSv1'
-          SslSupportMethod: 'sni-only'
+          MinimumProtocolVersion: "TLSv1"
+          SslSupportMethod: "sni-only"
 
   JournalCloudFrontOAI:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
@@ -283,7 +286,7 @@ Resources:
         Comment: !Ref SubdomainParam
 
   JournalACMCertificate:
-    Type: 'AWS::CertificateManager::Certificate'
+    Type: "AWS::CertificateManager::Certificate"
     Properties:
       DomainName: !Ref SubdomainParam
       DomainValidationOptions:
@@ -292,7 +295,7 @@ Resources:
       ValidationMethod: DNS
 
   Route53RecordSet:
-    Type: 'AWS::Route53::RecordSetGroup'
+    Type: "AWS::Route53::RecordSetGroup"
     Properties:
       HostedZoneId: !Ref HostedZoneIDParam
       RecordSets:
@@ -300,7 +303,7 @@ Resources:
           Type: A
           AliasTarget:
             # Note: This HostedZoneID is always used for every CF distribution so it can be hard-coded in
-            HostedZoneId: 'Z2FDTNDATAQYW2'
+            HostedZoneId: "Z2FDTNDATAQYW2"
             DNSName: !GetAtt JournalCloudFrontDistribution.DomainName
 
   DistributionAuthorizer:
@@ -317,7 +320,7 @@ Resources:
   DistributionAuthorizerRole:
     Type: AWS::IAM::Role
     Properties:
-      Path: '/'
+      Path: "/"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       AssumeRolePolicyDocument:
@@ -333,7 +336,7 @@ Resources:
       Policies:
         - PolicyName: root
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: iam:GetRole*
@@ -347,7 +350,7 @@ Resources:
   ValueFuncExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      Path: '/'
+      Path: "/"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       AssumeRolePolicyDocument:
@@ -362,7 +365,7 @@ Resources:
       Policies:
         - PolicyName: root
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: apigateway:GET
@@ -405,7 +408,7 @@ Resources:
       Handler: index.lambda_handler
       Runtime: python3.8
       Timeout: 30
-      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${ValueFuncExecutionRole}'
+      Role: !Sub "arn:aws:iam::${AWS::AccountId}:role/${ValueFuncExecutionRole}"
   GetApiKeyValue:
     Type: Custom::LambdaCallout
     Properties:
@@ -420,8 +423,8 @@ Outputs:
     Value: !Ref JournalWebsiteS3Bucket
     Description: Website S3 Bucket Name
   JournalEntryApiEndpoint:
-    Description: 'API Gateway endpoint URL for Prod stage for Journal CRUD operations'
-    Value: !Sub 'https://${JournalEntryApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/entries/'
+    Description: "API Gateway endpoint URL for Prod stage for Journal CRUD operations"
+    Value: !Sub "https://${JournalEntryApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/entries/"
   APIKeyValue:
-    Description: 'The actual API Key Value'
+    Description: "The actual API Key Value"
     Value: !GetAtt GetApiKeyValue.Data
