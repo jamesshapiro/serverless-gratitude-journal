@@ -3,3 +3,5 @@ my-app/.env
 src/python/*
 .aws-sam/*
 samconfig.toml
+my-app/build/*
+my-app/node_modules/*

@@ -26,7 +26,7 @@ class JournalEntry extends React.Component {
 
   getTextOrImage(item, ulid, idx, item_count) {
     if (item.startsWith('#IMAGE#')) {
-      const imageLocation=item.slice(7)
+      const imageLocation = item.slice('#IMAGE#'.length)
       return (
         <>
           <img
@@ -37,6 +37,9 @@ class JournalEntry extends React.Component {
           {/* <img className="journal-image" src="koala.jpg" alt="koala.jpg" /> */}
         </>
       )
+    } else if (item.startsWith('#CAPTION#')) {
+      const imageCaption = item.slice('#CAPTION#'.length)
+      return <>{imageCaption}</>
     } else if (item_count > 1) {
       return <li key={`${ulid}-${idx}`}>{item}</li>
     } else {

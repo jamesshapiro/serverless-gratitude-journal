@@ -95,7 +95,8 @@ def create_image_post(image_caption, entry_ulid, dynamodb_client, image_base64_c
     with open(tempfile, 'wb') as f:
         f.write(image_binary)
     response = s3_client.upload_file(tempfile, bucket, key)
-    entry_content = json.dumps([f'#IMAGE#images/{entry_ulid}/{image_title}'])
+    entry_content = json.dumps([f'#IMAGE#images/{entry_ulid}/{image_title}', image_caption])
+    index_words(json.dumps(json.loads(entry_content)[1:]), dynamodb_client, entry_ulid, table_name)
     create_entry_ddb_record(dynamodb_client, entry_ulid, entry_content)
     return response
 
