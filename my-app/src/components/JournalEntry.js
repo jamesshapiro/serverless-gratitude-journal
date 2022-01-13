@@ -33,8 +33,7 @@ class JournalEntry extends React.Component {
             className="journal-image"
             src={imageLocation}
             alt={imageLocation}
-          />
-          {/* <img className="journal-image" src="koala.jpg" alt="koala.jpg" /> */}
+          /><br />
         </>
       )
     } else if (item.startsWith('#CAPTION#')) {
@@ -49,7 +48,7 @@ class JournalEntry extends React.Component {
 
   listStringToUL(entry_content, ulid) {
     const as_list = JSON.parse(entry_content);
-    if (as_list.length > 1) {
+    if (!as_list[0].startsWith('#IMAGE#')) {
       return (
         <ul>
           {as_list.map((item, idx) => (

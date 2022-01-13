@@ -223,7 +223,7 @@ class App extends React.Component {
 
   uploadImage = (base64) => {
     console.log(`submitting 1... ${this.state.imageCaption}`)
-    var image_caption = "image"
+    var image_caption = "#NO_CAPTION#"
     if (this.state.imageCaption) {
       image_caption = this.state.imageCaption
     }
@@ -251,6 +251,7 @@ class App extends React.Component {
         exclusiveStartKey: '',
         showEntries: true,
         values: [''],
+        imageCaption: '',
       })
       this.getNewEntries()
     })

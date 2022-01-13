@@ -95,8 +95,11 @@ def create_image_post(image_caption, entry_ulid, dynamodb_client, image_base64_c
     with open(tempfile, 'wb') as f:
         f.write(image_binary)
     response = s3_client.upload_file(tempfile, bucket, key)
-    entry_content = json.dumps([f'#IMAGE#images/{entry_ulid}/{image_title}', image_caption])
-    index_words(json.dumps(json.loads(entry_content)[1:]), dynamodb_client, entry_ulid, table_name)
+    items = [f'#IMAGE#images/{entry_ulid}/{image_title}']
+    if image_caption != '#NO_CAPTION#':
+        index_words(json.dumps(image_caption), dynamodb_client, entry_ulid, table_name)
+        items.append(f'#CAPTION#{image_caption}')
+    entry_content = json.dumps(items)
     create_entry_ddb_record(dynamodb_client, entry_ulid, entry_content)
     return response
 
@@ -112,7 +115,6 @@ def lambda_handler(event, context):
             body['entry'], entry_ulid, dynamodb_client)
     elif 'image_caption' in body:
         image_caption = body['image_caption']
-        image_caption = image_caption.strip('"')
         image_base64_content = body['image_base64_content']
         response_body = create_image_post(
             image_caption, entry_ulid, dynamodb_client, image_base64_content)
