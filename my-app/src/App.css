@@ -27,6 +27,16 @@
   margin: auto;
 }
 
+.image-caption {
+  width: 500px;
+  margin: auto;
+  font-size: 1.5rem;
+}
+
+.image-caption-textarea {
+  width: 500px;
+}
+
 .upload-inner-box {
   display: table-cell;
   vertical-align: middle;

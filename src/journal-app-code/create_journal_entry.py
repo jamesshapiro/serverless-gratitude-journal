@@ -97,7 +97,7 @@ def create_image_post(image_caption, entry_ulid, dynamodb_client, image_base64_c
     response = s3_client.upload_file(tempfile, bucket, key)
     items = [f'#IMAGE#images/{entry_ulid}/{image_title}']
     if image_caption != '#NO_CAPTION#':
-        index_words(json.dumps(image_caption), dynamodb_client, entry_ulid, table_name)
+        index_words(json.dumps([image_caption]), dynamodb_client, entry_ulid, table_name)
         items.append(f'#CAPTION#{image_caption}')
     entry_content = json.dumps(items)
     create_entry_ddb_record(dynamodb_client, entry_ulid, entry_content)

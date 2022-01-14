@@ -4,7 +4,7 @@ import "./App.css";
 import JournalEntry from "./components/JournalEntry";
 import InfiniteScroll from "react-infinite-scroll-component";
 import React from "react";
-import { ImagePicker } from 'react-file-picker'
+import { ImagePicker } from './components/react-file-picker/src/'
 import { FaCloudUploadAlt } from 'react-icons/fa'
 
 class App extends React.Component {
@@ -64,11 +64,10 @@ class App extends React.Component {
   createImageCaption() {
     var i = 'image-metadata'
     return (
-      <div key={i}>
+      <div key={i} className="image-caption">
         Caption (Optional):{' '}
-        <input
-          type="text"
-          className="image-caption"
+        <textarea
+          className="image-caption-textarea"
           onChange={this.handleImageCaptionChange.bind(this, i)}
         />
       </div>
