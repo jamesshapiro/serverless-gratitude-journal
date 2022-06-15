@@ -32,10 +32,10 @@ default_password_args = {'--annoyingreqs': False,
 
 default_password = password_gen.generate_password(default_password_args)
 
-cloudformation = boto3.resource('cloudformation')
+cloudformation = boto3.resource('cloudformation', region_name='us-east-1')
 stack_id = input('stack id?: ')
-default_stack_id = get_default_stack_id()
 if stack_id == '':
+    default_stack_id = get_default_stack_id()
     stack_id = default_stack_id
 stack = cloudformation.Stack(stack_id)
 outputs = stack.outputs

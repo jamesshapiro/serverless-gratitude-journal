@@ -18,10 +18,28 @@ class JournalEntry extends React.Component {
     });
   };
 
+  updateEntry = () => {
+    this.props.updateEntryCleanup()
+    // const url = process.env.REACT_APP_URL + `?ulid=${this.state.ulid}`
+    // fetch(url, {
+    //   method: 'DELETE',
+    //   headers: {
+    //     'x-api-key': process.env.REACT_APP_API_KEY,
+    //   },
+    // }).then((response) => {
+    //   this.props.updateEntryCleanup()
+    // })
+  }
+
   componentDidMount() {
     const ulid = this.props.details.ulid;
     const newState = { ulid: ulid };
     this.setState(newState);
+  }
+
+  getText(entry_content) {
+    const as_list = JSON.parse(entry_content)
+    console.log(as_list)
   }
 
   getTextOrImage(item, ulid, idx, item_count) {
@@ -80,6 +98,12 @@ class JournalEntry extends React.Component {
             onClick={this.deleteEntry}
           >
             DELETE
+          </span>{' '}
+          <span
+            className="journal-entry-update-button"
+            onClick={this.updateEntry}
+          >
+            UPDATE
           </span>
           {/* <span
             className="journal-entry-spaces"

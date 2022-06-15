@@ -126,6 +126,12 @@ class App extends React.Component {
     this.getNewEntries()
   }
 
+  updateEntryCleanup = () => {
+    // this.setState({ entries: [], exclusiveStartKey: '' })
+    // this.getNewEntries()
+    this.showCreateEntry()
+  }
+
   getNewEntries = () => {
     var useExclusiveStartKey = true
     const NO_ENTRIES_LEFT = 'NO ENTRIES LEFT'
@@ -338,6 +344,7 @@ class App extends React.Component {
                 key={key}
                 details={this.state.entries[key]}
                 deleteEntryCleanup={this.deleteEntryCleanup}
+                updateEntryCleanup={this.updateEntryCleanup}
               />
             ))}
           </InfiniteScroll>

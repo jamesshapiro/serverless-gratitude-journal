@@ -139,6 +139,13 @@
   font-weight: 900;
 }
 
+.journal-entry-update-button {
+  color: rgb(255, 94, 0);
+  cursor: pointer;
+  font-size: 0.5rem;
+  font-weight: 900;
+}
+
 .journal-entry-edit-button {
   color: blue;
   cursor: pointer;
